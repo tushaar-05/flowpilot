@@ -54,7 +54,7 @@ export function FeaturesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-6 gap-6">
+        <div className="grid grid-cols-8 gap-6">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
@@ -64,7 +64,7 @@ export function FeaturesSection() {
               transition={{ delay: i * 0.08 }}
             >
               <Card hover className="h-full">
-                <div className={`inline-flex rounded-2xl border-2 border-ink p-3 ${f.color} shadow-brutal-sm mb-5`}>
+                <div className={`inline-flex rounded-2xl border-10 border-ink h-[300px] p-3 ${f.color} shadow-brutal-sm mb-5`}>
                   <f.icon className="h-6 w-6 text-ink" />
                 </div>
                 <CardTitle className="text-lg">{f.title}</CardTitle>

@@ -19,7 +19,7 @@ export function LandingNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b-2 border-ink bg-ink">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto bg-gray-600 flex h-16 max-w-6xl items-center justify-between px-6">
         <Link to={ROUTES.LANDING} className="flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-ink bg-primary shadow-brutal-sm">
             <Zap className="h-5 w-5 text-white" />
