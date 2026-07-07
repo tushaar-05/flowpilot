@@ -65,8 +65,17 @@ export function LoginPage() {
               {...register('rememberMe')}
               className="h-4 w-4 rounded border-2 border-ink accent-primary"
             />
-            <span className="block text-sm font-semibold text-ink mt-1">Remember me</span>
+            <span className="block text-sm font-semibold text-ink mt-1">
+              Remember me
+            </span>
           </label>
+
+          <Link
+            to={ROUTES.FORGOT_PASSWORD}
+            className="text-sm font-bold text-primary hover:underline"
+          >
+            Forgot Password?
+          </Link>
         </div>
 
         <Button type="submit" className="w-full" size="lg" loading={loading}>
