@@ -68,7 +68,7 @@ export function HeroSection() {
             Now in public beta — 2,400+ teams
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-100 leading-[1.05] tracking-tight">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.05] tracking-tight">
             Manage Projects.<br />
             <span className="text-primary">Collaborate Better.</span>
           </h1>

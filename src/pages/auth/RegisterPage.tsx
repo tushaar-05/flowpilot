@@ -66,7 +66,7 @@ export function RegisterPage() {
         />
 
         <Input
-          label="Password"
+          label="Confirm Password"
           type="password"
           placeholder="Repeat your password"
           error={errors.confirmPassword?.message}
