@@ -57,10 +57,11 @@ export function ResetPasswordPage() {
         <Input
           label="New Password"
           type="password"
-          placeholder="At least 6 characters"
+          placeholder="At least 8 characters"
           error={errors.password?.message}
           {...register('password')}
         />
+        <p className="-mt-3 text-xs text-muted">Must include uppercase, lowercase, number & special character.</p>
 
         <Input
           label="Confirm New Password"

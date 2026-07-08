@@ -99,6 +99,7 @@ export function ChangePasswordModal({
             error={errors.newPassword?.message}
             {...register('newPassword')}
         />
+        <p className="-mt-3 text-xs text-muted">Must include uppercase, lowercase, number & special character.</p>
 
         <Input
             label="Confirm Password"
