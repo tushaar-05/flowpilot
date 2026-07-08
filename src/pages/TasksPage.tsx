@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, CheckSquare, Trash2, Undo2 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { SearchBar } from '@/components/ui/SearchBar';
 import { FilterDropdown } from '@/components/ui/FilterDropdown';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -13,7 +12,6 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TaskFormModal, type TaskFormData } from '@/components/tasks/TaskFormModal';
 import { useApp } from '@/context/AppContext';
 import { usePagination } from '@/hooks/usePagination';
-import { useDebounce } from '@/hooks/useDebounce';
 import type { Task } from '@/types';
 import { TASK_STATUS_OPTIONS, TASK_PRIORITY_OPTIONS } from '@/constants';
 import { formatDate, getPriorityColor, getStatusColor, capitalize } from '@/utils/helpers';
@@ -29,51 +27,58 @@ export function TasksPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const sortedRef = useRef<Task[]>([]);
-  const debouncedSearch = useDebounce(search);
 
   const filtered = useMemo(() => {
     let result = [...tasks];
 
-    if (search) {
-      result = result.filter(
-        (t) =>
-          t.title.includes(search) ||
-          t.description.includes(search)
-      );
+    if (search.trim()) {
+      const query = search.toLowerCase().trim();
+      result = result.filter((t) => {
+        // Convert fields safely to strings to avoid crash bugs with partial matching
+        const titleStr = String(t.title || '').toLowerCase();
+        const descStr = String(t.description || '').toLowerCase();
+        
+        return titleStr.includes(query) || descStr.includes(query);
+      });
     }
 
     if (statusFilter !== 'all' || priorityFilter !== 'all') {
       result = result.filter((t) => {
         const statusMatch = statusFilter === 'all' || t.status === statusFilter;
         const priorityMatch = priorityFilter === 'all' || t.priority === priorityFilter;
-        return statusMatch || priorityMatch;
+        return statusMatch && priorityMatch;
       });
     }
 
     return result;
-  }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
+  }, [tasks, search, statusFilter, priorityFilter]);
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    const list = sortedRef.current.length > 0 && statusFilter === 'all' ? sortedRef.current : [...filtered];
+    const list = [...filtered];
+
     list.sort((a, b) => {
       switch (sortBy) {
-        case 'title': return a.title.localeCompare(b.title);
+        case 'title': return (a.title || '').localeCompare(b.title || '');
         case 'dueDate': return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
         case 'priority': return (priorityOrder[a.priority] ?? 4) - (priorityOrder[b.priority] ?? 4);
-        case 'status': return a.status.localeCompare(b.status);
+        case 'status': return (a.status || '').localeCompare(b.status || '');
         default: return 0;
       }
     });
-    sortedRef.current = list;
+
     return list;
-  }, [filtered, sortBy, statusFilter]);
+  }, [filtered, sortBy]);
 
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(
     sorted,
     settings.itemsPerPage
   );
+
+  // 2. Force the pagination to reset back to page 1 whenever search or filters change
+  useEffect(() => {
+    goToPage(1);
+  }, [search, statusFilter, priorityFilter]);
 
   const handlePageChange = (page: number) => {
     goToPage(page);
@@ -196,7 +201,13 @@ export function TasksPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <SearchBar value={search} onChange={setSearch} placeholder="Search tasks..." className="flex-1" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search tasks..."
+          className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+        />
         <div className="flex gap-2 flex-wrap">
           <FilterDropdown
             label="Status"
