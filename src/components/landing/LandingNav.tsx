@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Zap, Menu, X } from 'lucide-react';
+import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useApp } from '@/context/AppContext';
 import { ROUTES } from '@/constants';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export function LandingNav() {
   const [open, setOpen] = useState(false);
+  const { theme, toggleTheme } = useApp();
   const { isAuthenticated } = useAuth();
 
   const links = [
@@ -36,6 +38,13 @@ export function LandingNav() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm"
+          >
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
           {isAuthenticated ? (
             <Link to={ROUTES.DASHBOARD}>
               <Button size="sm">Open Dashboard</Button>

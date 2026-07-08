@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { Zap, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ROUTES } from '@/constants';
+import { useApp } from '@/context/AppContext';
 
 export function AuthLayout({
   children,
@@ -12,6 +13,8 @@ export function AuthLayout({
   title: string;
   subtitle: string;
 }) {
+  const { theme, toggleTheme } = useApp();
+
   return (
     <div className="min-h-screen bg-background flex">
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r-2 border-ink relative overflow-hidden">
@@ -49,13 +52,20 @@ export function AuthLayout({
       </div>
 
       <div className="flex-1 flex flex-col justify-start px-6 py-12 sm:px-12">
-        <div className="lg:hidden mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <Link to={ROUTES.LANDING} className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-ink bg-primary shadow-brutal-sm">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-extrabold">FlowPilot</span>
           </Link>
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm"
+          >
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
         </div>
 
         <motion.div
@@ -71,3 +81,4 @@ export function AuthLayout({
     </div>
   );
 }
+ 

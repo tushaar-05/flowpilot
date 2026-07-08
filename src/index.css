@@ -10,13 +10,47 @@
   --color-purple: #8b5cf6;
   --color-success: #10b981;
   --color-danger: #ef4444;
-  --color-background: #fffdf7;
+  --color-background: #ffffff;
   --color-surface: #ffffff;
   --color-ink: #111827;
   --color-border: #111827;
-  --color-muted: #64748b;
-  --color-foreground: #1e293b;
+  --color-muted: #475569;
+  --color-foreground: #0f172a;
   --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
+}
+
+/* Dark theme overrides applied when the root has the `dark` class */
+.dark {
+  @theme {
+    --color-background: #0b1220;
+    --color-surface: #0f1724;
+    --color-ink: #e6eef8;
+    --color-border: #334155;
+    --color-muted: #94a3b8;
+    --color-foreground: #e6eef8;
+    --color-primary: #3b82f6;
+    --color-primary-dark: #60a5fa;
+  }
+
+  .bg-white {
+    background-color: var(--color-surface) !important;
+  }
+
+  .bg-slate-100 {
+    background-color: #1f2937 !important;
+  }
+
+  .text-muted {
+    color: var(--color-muted) !important;
+  }
+
+  .border-white {
+    border-color: var(--color-border) !important;
+  }
+
+  .border-ink {
+    border-color: #475569 !important;
+  }
 }
 
 @layer base {
@@ -24,12 +58,25 @@
     @apply border-border;
   }
 
+  html {
+    min-height: 100%;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   #root {
-    @apply min-h-screen;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4 {
@@ -74,6 +121,28 @@
   }
 
   .text-ink {
-    color: #111827;
+    color: var(--color-ink);
   }
+}
+
+:root {
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-ink: #111827;
+  --color-border: #111827;
+  --color-muted: #475569;
+  --color-foreground: #0f172a;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+}
+
+.dark {
+  --color-background: #0b1220;
+  --color-surface: #0f1724;
+  --color-ink: #e6eef8;
+  --color-border: #334155;
+  --color-muted: #94a3b8;
+  --color-foreground: #e6eef8;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #60a5fa;
 }

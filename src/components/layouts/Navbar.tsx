@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Menu, Search, Plus, Bell } from 'lucide-react';
+import { Menu, Search, Plus, Bell, Sun, Moon } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
@@ -9,10 +9,10 @@ import { ROUTES } from '@/constants';
 import { useState } from 'react';
 
 export function Navbar() {
-  const { sidebarOpen, setSidebarOpen, notifications } = useApp();
+  const { sidebarOpen, setSidebarOpen, notifications, theme, toggleTheme } = useApp();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const unread = notifications.filter((n) => !n.read).length;
+  const unread = notifications.filter((n) => !n.read).length; 
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b-2 border-ink bg-background/95 backdrop-blur-md px-4 sm:px-6">
@@ -49,6 +49,13 @@ export function Navbar() {
             </span>
           )}
         </Link>
+        <button
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm"
+        >
+          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
         <button className="rounded-xl border-2 border-ink p-2.5 sm:hidden shadow-brutal-sm">
           <Search className="h-5 w-5" />
         </button>

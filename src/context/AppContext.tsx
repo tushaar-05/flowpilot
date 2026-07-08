@@ -30,7 +30,7 @@ import { fetchActivity } from '@/services/activityService';
 import { useToast } from './ToastContext';
 
 interface AppContextValue {
-  loading: boolean;
+  loading: boolean; 
   projects: Project[];
   tasks: Task[];
   users: User[];
@@ -40,6 +40,8 @@ interface AppContextValue {
   activity: ActivityItem[];
   profile: UserProfile;
   settings: AppSettings;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   createProject: (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
@@ -89,6 +91,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [settings, setSettings] = useState<AppSettings>(() =>
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
+  );
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    getFromStorage(STORAGE_KEYS.THEME, 'light') as 'light' | 'dark'
   );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [deletedStack, setDeletedStack] = useState<DeletedItem[]>([]);
@@ -145,6 +150,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setToStorage(STORAGE_KEYS.SETTINGS, settings);
   }, [settings]);
+
+  useEffect(() => {
+    // persist theme and update document class to switch CSS variables
+    setToStorage(STORAGE_KEYS.THEME, theme);
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (!loading) {
@@ -296,6 +310,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addToast('success', 'Settings saved');
   };
 
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+
   const uploadFile = (data: Omit<FileItem, 'id' | 'uploadedAt'>) => {
     const file: FileItem = {
       ...data,
@@ -339,6 +355,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteNotification,
         updateProfile,
         updateSettings,
+        theme,
+        toggleTheme,
         uploadFile,
         deleteFile,
         refreshData: loadData,

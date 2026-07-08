@@ -2,7 +2,11 @@ export function getFromStorage<T>(key: string, fallback: T): T {
   try {
     const item = localStorage.getItem(key);
     if (item === null) return fallback;
-    return JSON.parse(item) as T;
+    try {
+      return JSON.parse(item) as T;
+    } catch {
+      return item as unknown as T;
+    }
   } catch {
     return fallback;
   }
