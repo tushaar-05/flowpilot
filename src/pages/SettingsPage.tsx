@@ -101,7 +101,7 @@ export function SettingsPage() {
                     onClick={() => handleChange(item.key, !localSettings[item.key])}
                     className={`relative h-6 w-11 rounded-full transition-colors ${localSettings[item.key] ? 'bg-primary' : 'bg-slate-200'}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${localSettings[item.key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    <span className={`absolute top-0.5 left-0 h-5 w-5 rounded-full bg-white shadow transition-transform ${localSettings[item.key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
               ))}
@@ -124,7 +124,7 @@ export function SettingsPage() {
                     onClick={() => handleChange(item.key, !localSettings[item.key])}
                     className={`relative h-6 w-11 rounded-full transition-colors ${localSettings[item.key] ? 'bg-primary' : 'bg-slate-200'}`}
                   >
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${localSettings[item.key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    <span className={`absolute top-0.5 left-0 h-5 w-5 rounded-full bg-white shadow transition-transform ${localSettings[item.key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
               ))}
@@ -142,7 +142,7 @@ export function SettingsPage() {
                   onClick={() => handleChange('twoFactorEnabled', !localSettings.twoFactorEnabled)}
                   className={`relative h-6 w-11 rounded-full transition-colors ${localSettings.twoFactorEnabled ? 'bg-primary' : 'bg-slate-200'}`}
                 >
-                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${localSettings.twoFactorEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  <span className={`absolute top-0.5 left-0 h-5 w-5 rounded-full bg-white shadow transition-transform ${localSettings.twoFactorEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                 </button>
               </div>
               <div>
