@@ -51,6 +51,7 @@ interface AppContextValue {
   deleteTask: (id: string) => Promise<void>;
   undoDelete: () => void;
   updateTaskStatus: (id: string, status: Task['status']) => void;
+  reorderTasks: (tasks: Task[]) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   deleteNotification: (id: string) => void;
@@ -312,6 +313,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const reorderTasks = (newTasks: Task[]) => {
+    setTasks(newTasks);
+  };
+
   const markNotificationRead = (id: string) => {
     setNotifications((prev) => {
       const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
@@ -410,6 +415,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteTask,
         undoDelete,
         updateTaskStatus,
+        reorderTasks,
         markNotificationRead,
         markAllNotificationsRead,
         deleteNotification,
