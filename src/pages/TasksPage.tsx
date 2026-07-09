@@ -33,25 +33,37 @@ export function TasksPage() {
 
   const filtered = useMemo(() => {
     let result = [...tasks];
+    const normalizedSearch = debouncedSearch.trim().toLowerCase();
 
-    if (search) {
-      result = result.filter(
-        (t) =>
-          t.title.includes(search) ||
-          t.description.includes(search)
-      );
-    }
+    if (normalizedSearch) {
+      result = result.filter((task) => {
+        const projectName = projects.find((project) => project.id === task.projectId)?.name ?? '';
+        const assigneeName = users.find((user) => user.id === task.assigneeId)?.name ?? '';
+        const searchableText = [
+          task.title,
+          task.description,
+          task.priority,
+          task.status,
+          task.dueDate,
+          projectName,
+          assigneeName,
+          ...task.labels,
+        ]
+          .join(' ')
+          .toLowerCase();
 
-    if (statusFilter !== 'all' || priorityFilter !== 'all') {
-      result = result.filter((t) => {
-        const statusMatch = statusFilter === 'all' || t.status === statusFilter;
-        const priorityMatch = priorityFilter === 'all' || t.priority === priorityFilter;
-        return statusMatch && priorityMatch; {/*  Changed to AND */}
+        return searchableText.includes(normalizedSearch);
       });
     }
 
+    result = result.filter((task) => {
+      const statusMatch = statusFilter === 'all' || task.status === statusFilter;
+      const priorityMatch = priorityFilter === 'all' || task.priority === priorityFilter;
+      return statusMatch && priorityMatch;
+    });
+
     return result;
-  }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
+  }, [tasks, debouncedSearch, statusFilter, priorityFilter, projects, users]);
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
