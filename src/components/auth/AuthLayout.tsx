@@ -18,14 +18,13 @@ export function AuthLayout({
   return (
     <div className="min-h-screen bg-background flex">
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r-2 border-ink relative overflow-hidden">
-        <Link to={ROUTES.LANDING} className="flex items-center gap-3 z-10">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-ink bg-primary shadow-brutal">
-            <Zap className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-2xl font-extrabold text-ink">FlowPilot</span>
-        </Link>
-
         <div className="z-10">
+          <Link to={ROUTES.LANDING} className="inline-flex items-center gap-3 mb-8">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-ink bg-primary shadow-brutal">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-2xl font-extrabold text-ink">FlowPilot</span>
+          </Link>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -53,7 +52,7 @@ export function AuthLayout({
 
       <div className="flex-1 flex flex-col justify-start px-6 py-12 sm:px-12">
         <div className="mb-8 flex items-center justify-between">
-          <Link to={ROUTES.LANDING} className="flex items-center gap-2">
+          <Link to={ROUTES.LANDING} className="flex items-center gap-2 lg:hidden">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-ink bg-primary shadow-brutal-sm">
               <Zap className="h-5 w-5 text-white" />
             </div>

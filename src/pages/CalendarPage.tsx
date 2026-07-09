@@ -88,13 +88,13 @@ export function CalendarPage() {
                 key={day.toISOString()}
                 onClick={() => handleDayClick(day)}
                 className={cn(
-                  'h-24 rounded-lg border border-transparent p-2 text-left transition-colors hover:border-border hover:bg-slate-50',
+                  'h-24 rounded-lg border border-transparent p-2 text-left transition-colors hover:border-border hover:bg-slate-50 dark:hover:bg-slate-800',
                   isToday(day) && 'border-primary bg-primary/5',
                   !inMonth && 'opacity-40'
                 )}
               >
                 <span className={cn(
-                  'text-sm font-medium',
+                  'text-sm font-medium text-ink dark:text-white',
                   isToday(day) && 'text-primary'
                 )}>
                   {format(day, 'd')}
