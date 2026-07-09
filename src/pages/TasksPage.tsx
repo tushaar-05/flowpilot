@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, CheckSquare, Trash2, Undo2 } from 'lucide-react';
+import { Plus, CheckSquare, Trash2, Undo2, Download } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { FilterDropdown } from '@/components/ui/FilterDropdown';
@@ -122,6 +122,42 @@ export function TasksPage() {
     setEditingTask(null);
   };
 
+  function generateCsv(taskList: typeof sorted): string {
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+    const projectMap = new Map(projects.map((p) => [p.id, p.name]));
+
+    const escape = (value: string) => {
+      if (/[,"\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+      return value;
+    };
+
+    const header = ['Title', 'Status', 'Priority', 'Assignee', 'Project', 'Due Date', 'Labels', 'Created Date'];
+    const rows = taskList.map((task) => [
+      escape(task.title),
+      escape(capitalize(task.status)),
+      escape(capitalize(task.priority)),
+      escape(userMap.get(task.assigneeId) ?? ''),
+      escape(projectMap.get(task.projectId) ?? ''),
+      escape(formatDate(task.dueDate)),
+      escape(task.labels.join(', ')),
+      escape(formatDate(task.createdAt)),
+    ]);
+
+    return '\uFEFF' + [header, ...rows].map((row) => row.join(',')).join('\n');
+  }
+
+  function downloadCsv() {
+    const csv = generateCsv(sorted);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `flowpilot-tasks-${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const columns = [
     {
       key: 'title',
@@ -228,6 +264,16 @@ export function TasksPage() {
               { value: 'status', label: 'Status' },
             ]}
           />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadCsv}
+            disabled={sorted.length === 0}
+            title={sorted.length === 0 ? 'No tasks to export' : undefined}
+            className="shadow-brutal-sm py-2.5"
+          >
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
         </div>
       </div>
 
