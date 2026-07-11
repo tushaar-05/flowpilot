@@ -4,7 +4,7 @@ import { Card, CardTitle, CardDescription } from '@/components/ui/Card';
 
 const features = [
   {
-    icon: Bell,
+    icon: Kanban,
     title: 'Visual Kanban Boards',
     description: 'Drag tasks across columns. See bottlenecks before they become blockers on your next sprint.',
     color: 'bg-primary/15',
@@ -34,7 +34,7 @@ const features = [
     color: 'bg-purple/20',
   },
   {
-    icon: Kanban,
+    icon: Bell,
     title: 'Smart Notifications',
     description: 'Get pinged on what matters — assignments, reviews, and deadlines — not every comment.',
     color: 'bg-white',
@@ -63,7 +63,7 @@ export function FeaturesSection() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
             >
-              <Card hover className={`h-full ${i === 0 ? 'border-none bg-transparent shadow-none hover:shadow-none pointer-events-none' : ''}`}>
+              <Card hover className="h-full">
                 <div className={`inline-flex rounded-2xl border-2 border-ink p-3 ${f.color} shadow-brutal-sm mb-5`}>
                   <f.icon className="h-6 w-6 text-ink" />
                 </div>
