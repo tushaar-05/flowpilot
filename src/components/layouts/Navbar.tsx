@@ -4,13 +4,12 @@ import { Avatar } from '@/components/ui/Avatar';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/context/AppContext';
-import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/constants';
 import { useState } from 'react';
 
 export function Navbar() {
-  const { sidebarOpen, setSidebarOpen, notifications, theme, toggleTheme } = useApp();
-  const { user } = useAuth();
+const { sidebarOpen, setSidebarOpen, notifications, theme, toggleTheme, profile } = useApp();
+const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const unread = notifications.filter((n) => !n.read).length; 
 
@@ -63,8 +62,8 @@ export function Navbar() {
           to={ROUTES.PROFILE}
           className="flex items-center gap-2.5 rounded-2xl border-2 border-ink bg-white pl-1.5 pr-3 py-1.5 hover:shadow-brutal-sm transition-all"
         >
-          <Avatar src={user?.avatar} name={user?.name ?? 'User'} size="sm" />
-          <span className="hidden lg:block text-sm font-extrabold max-w-[120px] truncate">{user?.name}</span>
+          <Avatar src={profile?.avatar} name={profile?.name ?? 'User'} size="sm" />
+          <span className="hidden lg:block text-sm font-extrabold max-w-[120px] truncate">{profile?.name}</span>
         </Link>
       </div>
     </header>

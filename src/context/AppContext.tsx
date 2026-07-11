@@ -19,7 +19,7 @@ import type {
   DeletedItem,
 } from '@/types';
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from '@/constants';
-import { getFromStorage, setToStorage } from '@/utils/storage';
+import { getFromStorage, setToStorage, removeFromStorage } from '@/utils/storage';
 import { generateId } from '@/utils/helpers';
 import { fetchProjects, createProjectApi, updateProjectApi, deleteProjectApi } from '@/services/projectService';
 import { fetchTasks, createTaskApi, updateTaskApi, deleteTaskApi } from '@/services/taskService';
@@ -28,6 +28,7 @@ import { fetchNotifications } from '@/services/notificationService';
 import { fetchFiles } from '@/services/fileService';
 import { fetchActivity } from '@/services/activityService';
 import { useToast } from './ToastContext';
+import { useAuth } from './AuthContext';
 
 interface AppContextValue {
   loading: boolean; 
@@ -52,6 +53,7 @@ interface AppContextValue {
   deleteTask: (id: string) => Promise<void>;
   undoDelete: () => void;
   updateTaskStatus: (id: string, status: Task['status']) => void;
+  reorderTasks: (tasks: Task[]) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   deleteNotification: (id: string) => void;
@@ -78,6 +80,7 @@ const defaultProfile: UserProfile = {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { addToast } = useToast();
+  const { user: authUser, updateAuthUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -86,17 +89,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [profile, setProfile] = useState<UserProfile>(() =>
-    getFromStorage(STORAGE_KEYS.PROFILE, defaultProfile)
-  );
+  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [settings, setSettings] = useState<AppSettings>(() =>
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
-  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
-    getFromStorage(STORAGE_KEYS.THEME, 'light') as 'light' | 'dark'
-  );
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [deletedStack, setDeletedStack] = useState<DeletedItem[]>([]);
+const { sidebarOpen, setSidebarOpen, notifications, theme, toggleTheme, profile } = useApp();
+const { user } = useAuth();
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
   const loadData = useCallback(async () => {
@@ -134,6 +132,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (authUser) {
+      const found = users.find((u) => u.email.toLowerCase() === authUser.email.toLowerCase());
+      if (found) {
+        setCurrentUser(found);
+      } else {
+        setCurrentUser({
+          id: authUser.email,
+          name: authUser.name,
+          email: authUser.email,
+          role: 'member',
+          avatar: authUser.avatar,
+          department: 'General',
+          phone: '',
+          bio: '',
+          skills: [],
+          joinedAt: authUser.createdAt || new Date().toISOString(),
+          projectIds: [],
+        });
+      }
+
+      // Load user-specific profile
+      const userProfileKey = `${STORAGE_KEYS.PROFILE}_${authUser.email.toLowerCase()}`;
+      const initialProfile: UserProfile = {
+        id: found?.id || authUser.email,
+        name: found?.name || authUser.name,
+        email: found?.email || authUser.email,
+        phone: found?.phone || '',
+        bio: found?.bio || '',
+        location: '',
+        website: '',
+        skills: found?.skills || [],
+        avatar: found?.avatar || authUser.avatar,
+      };
+      setProfile(getFromStorage<UserProfile>(userProfileKey, initialProfile));
+    } else {
+      setCurrentUser(null);
+      setProfile(defaultProfile);
+    }
+  }, [authUser, users, loading]);
 
   useEffect(() => {
     if (!loading && projects.length > 0) {
@@ -268,9 +309,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDeletedStack((prev) => prev.slice(1));
 
     if (toRestore.type === 'task') {
-      setProjects((prev) => [...prev, toRestore.item as unknown as Project]);
+      setTasks((prev) => [...prev, toRestore.item as Task]);
     } else {
-      setTasks((prev) => [...prev, toRestore.item as unknown as Task]);
+      setProjects((prev) => [...prev, toRestore.item as Project]);
     }
     addToast('info', 'Item restored');
   };
@@ -281,6 +322,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
       )
     );
+  };
+
+  const reorderTasks = (newTasks: Task[]) => {
+    setTasks(newTasks);
   };
 
   const markNotificationRead = (id: string) => {
@@ -302,6 +347,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = (updated: UserProfile) => {
     setProfile(updated);
+    if (authUser) {
+      const userProfileKey = `${STORAGE_KEYS.PROFILE}_${updated.email.toLowerCase()}`;
+      setToStorage(userProfileKey, updated);
+
+      const updatedFields = {
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        bio: updated.bio,
+        skills: updated.skills,
+        avatar: updated.avatar,
+      };
+
+      // Sync the user list in state
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.email.toLowerCase() === authUser.email.toLowerCase()
+            ? { ...u, ...updatedFields }
+            : u
+        )
+      );
+
+      // Also update the currentUser state directly
+      setCurrentUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+
+      // If email changed, remove the old profile storage key
+      if (authUser.email.toLowerCase() !== updated.email.toLowerCase()) {
+        removeFromStorage(`${STORAGE_KEYS.PROFILE}_${authUser.email.toLowerCase()}`);
+      }
+
+      // Also update authUser, STORAGE_KEYS.USERS, and flowpilot_session
+      updateAuthUser(updated.name, updated.email, updated.avatar);
+    }
     addToast('success', 'Profile updated');
   };
 
@@ -350,6 +428,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteTask,
         undoDelete,
         updateTaskStatus,
+        reorderTasks,
         markNotificationRead,
         markAllNotificationsRead,
         deleteNotification,

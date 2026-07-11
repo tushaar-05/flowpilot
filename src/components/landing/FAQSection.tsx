@@ -32,8 +32,8 @@ export function FAQSection() {
         </h2>
         <div className="rounded-3xl border-2 border-ink bg-white px-6 shadow-brutal">
           {faqs.map((f) => (
-            <AccordionItem key={f.q} title={f.q}>
-              {f.a}
+            <AccordionItem key={f.q} title={f.a}>
+              {f.q}
             </AccordionItem>
           ))}
         </div>

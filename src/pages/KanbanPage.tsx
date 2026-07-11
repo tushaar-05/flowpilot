@@ -6,10 +6,11 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Badge } from '@/components/ui/Badge';
@@ -67,6 +68,7 @@ function KanbanColumn({
   users: ReturnType<typeof useApp>['users'];
 }) {
   const columnTasks = tasks.filter((t) => t.status === status);
+  const { setNodeRef } = useDroppable({ id: status });
 
   return (
     <div className="flex flex-col min-w-[280px] flex-1">
@@ -74,8 +76,8 @@ function KanbanColumn({
         <h3 className="text-sm font-semibold">{title}</h3>
         <span className="text-xs text-muted bg-slate-100 rounded-full px-2 py-0.5">{columnTasks.length}</span>
       </div>
-      <SortableContext items={columnTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex-1 space-y-2 rounded-xl bg-slate-50/80 p-3 min-h-[400px]">
+      <SortableContext id={status} items={columnTasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <div ref={setNodeRef} className="flex-1 space-y-2 rounded-xl bg-slate-50/80 p-3 min-h-[400px]">
           {columnTasks.map((task) => (
             <KanbanCard key={task.id} task={task} users={users} />
           ))}
@@ -86,16 +88,14 @@ function KanbanColumn({
 }
 
 export function KanbanPage() {
-  const { tasks, users, updateTaskStatus, projects } = useApp();
+  const { tasks, users, reorderTasks, projects } = useApp();
   const [projectFilter, setProjectFilter] = useState('all');
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [localTasks, setLocalTasks] = useState<Task[]>([]);
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
 
   useEffect(() => {
-    if (localTasks.length === 0 && tasks.length > 0) {
-      setLocalTasks(tasks);
-    }
-  }, [tasks, localTasks.length]);
+    setLocalTasks(tasks);
+  }, [tasks]);
 
   const filteredTasks = useMemo(() => {
     const source = localTasks.length > 0 ? localTasks : tasks;
@@ -118,7 +118,7 @@ export function KanbanPage() {
 
     if (!over) return;
 
-    const taskId = active.id as string;
+    const activeId = active.id as string;
     const overId = over.id as string;
 
     let newStatus: TaskStatus | null = null;
@@ -126,23 +126,44 @@ export function KanbanPage() {
     if (column) {
       newStatus = column.status as TaskStatus;
     } else {
-      const overTask = filteredTasks.find((t) => t.id === overId);
+      const overTask = localTasks.find((t) => t.id === overId);
       if (overTask) newStatus = overTask.status;
     }
 
     if (!newStatus) return;
 
-    const task = filteredTasks.find((t) => t.id === taskId);
-    if (task && task.status === newStatus) return;
+    const activeIndex = localTasks.findIndex((t) => t.id === activeId);
+    if (activeIndex === -1) return;
 
-    if (taskId.charCodeAt(taskId.length - 1) % 3 === 0) {
-      return;
+    let updatedTasks = [...localTasks];
+
+    // Update status and updatedAt of the moved task
+    updatedTasks[activeIndex] = {
+      ...updatedTasks[activeIndex],
+      status: newStatus,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const overIndex = localTasks.findIndex((t) => t.id === overId);
+
+    if (overIndex !== -1) {
+      // Reordering within the same or different column over another task
+      updatedTasks = arrayMove(updatedTasks, activeIndex, overIndex);
+    } else {
+      // Dropping directly on a column container
+      const [movedTask] = updatedTasks.splice(activeIndex, 1);
+      const columnTasks = updatedTasks.filter((t) => t.status === newStatus);
+      if (columnTasks.length > 0) {
+        const lastTask = columnTasks[columnTasks.length - 1];
+        const lastTaskIndex = updatedTasks.findIndex((t) => t.id === lastTask.id);
+        updatedTasks.splice(lastTaskIndex + 1, 0, movedTask);
+      } else {
+        updatedTasks.push(movedTask);
+      }
     }
 
-    setLocalTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus! } : t))
-    );
-    updateTaskStatus(taskId, newStatus);
+    setLocalTasks(updatedTasks);
+    reorderTasks(updatedTasks);
   };
 
   return (

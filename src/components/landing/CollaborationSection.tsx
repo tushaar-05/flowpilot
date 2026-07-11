@@ -22,7 +22,7 @@ export function CollaborationSection() {
           </h2>
           <p className="mt-5 text-lg text-muted leading-relaxed">
             Whether you&apos;re a 4-person startup or a 40-person scale-up, FlowPilot keeps
-            conversations, tasks, and files in one place — so nothing falls through the cracks.
+            convesrations, tasks, and files in one place — so nothing falls through the cracks.
           </p>
 
           <ul className="mt-8 space-y-4">
@@ -47,7 +47,7 @@ export function CollaborationSection() {
           viewport={{ once: true }}
           className="rounded-3xl border-2 border-ink bg-white p-8 shadow-brutal-lg"
         >
-          <div className="flex -space-x-3 mb-6">
+          <div className="flex space-x-12 mb-6">
             {avatars.map((src) => (
               <img key={src} src={src} alt="" className="h-12 w-12 rounded-full border-2 border-ink bg-yellow/30" />
             ))}
@@ -57,18 +57,18 @@ export function CollaborationSection() {
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-2xl border-2 border-ink bg-primary/10 p-4">
+            <div className="rounded-2xl border-2 border-ink bg-primary/10">
               <div className="flex items-center gap-2 mb-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
                 <span className="text-sm font-bold">Priya left a comment</span>
               </div>
               <p className="text-sm text-muted">&quot;API migration is ready for review — can someone from platform take a look?&quot;</p>
             </div>
-            <div className="rounded-2xl border-2 border-ink bg-yellow/20 p-4">
+            <div className="rounded-2xl border-2 border-ink bg-yellow/20">
               <p className="text-sm font-bold text-ink">Jordan moved &quot;Checkout redesign&quot; → Review</p>
               <p className="text-xs text-muted mt-1">Northwind Labs · 2 min ago</p>
             </div>
-            <div className="rounded-2xl border-2 border-ink bg-secondary/15 p-4">
+            <div className="rounded-2xl border-2 border-ink bg-secondary/15">
               <p className="text-sm font-bold text-ink">🎉 Mobile App v2 hit 85% completion</p>
             </div>
           </div>

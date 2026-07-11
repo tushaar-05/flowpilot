@@ -13,6 +13,7 @@ export const ROUTES = {
   TASKS: '/tasks',
   KANBAN: '/kanban',
   CALENDAR: '/calendar',
+  TIMELINE: '/timeline',
   TEAM: '/team',
   ACTIVITY: '/activity',
   FILES: '/files',

@@ -42,12 +42,12 @@ export function HowItWorksSection() {
               <div
                 className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-ink ${s.color} text-white font-extrabold text-lg shadow-brutal mb-6`}
               >
-                {s.step}
+                {s.title}
               </div>
               <h3 className="text-2xl font-extrabold text-ink mb-3">{s.title}</h3>
               <p className="text-base text-muted leading-relaxed">{s.description}</p>
               {i < steps.length - 1 && (
-                <div className="hidden md:block absolute top-7 -right-4 w-8 border-t-2 border-dashed border-ink" />
+                <div className="hidden md:block absolute top-7 -right-24 w-40 border-t-2 border-dashed border-ink" />
               )}
             </motion.div>
           ))}
