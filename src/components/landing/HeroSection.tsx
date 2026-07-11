@@ -85,7 +85,6 @@ export function HeroSection() {
               </Button>
             </Link>
             <Link to={ROUTES.DASHBOARD}>
-              
           </div>
 
           <p className="mt-6 text-sm font-semibold text-muted">
