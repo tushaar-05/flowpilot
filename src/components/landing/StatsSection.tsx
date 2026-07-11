@@ -13,10 +13,10 @@ export function StatsSection() {
       <div className="mx-auto max-w-6xl flex flex-row overflow-visible gap-8">
         {stats.map((s) => (
           <div key={s.label} className="text-center min-w-[200px]">
-            <p className="text-4xl sm:text-5xl font-extrabold text-ink">
+            <p className="text-4xl sm:text-5xl font-extrabold text-white">
               <AnimatedCounter value={s.value} suffix={s.suffix} />
             </p>
-            <p className="mt-2 text-sm font-bold text-white/70 uppercase tracking-wider">{s.label}</p>
+            <p className="mt-2 text-sm font-bold text-white/90 uppercase tracking-wider">{s.label}</p>
           </div>
         ))}
       </div>
