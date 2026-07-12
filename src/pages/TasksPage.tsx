@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, CheckSquare, Trash2, Undo2, Download } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -28,6 +29,14 @@ export function TasksPage() {
   const [sortBy, setSortBy] = useState<SortField>('dueDate');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+ const [searchParams] = useSearchParams();
+
+useEffect(() => {
+  if (searchParams.get('newTask') === 'true') {
+    setEditingTask(null);
+    setModalOpen(true);
+  }
+}, [searchParams]); 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search);
 
