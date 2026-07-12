@@ -1,15 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Menu, Search, Plus, Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/context/AppContext';
 import { ROUTES } from '@/constants';
-import { useState } from 'react';
+import { GlobalSearch } from './GlobalSearch';
 
 export function Navbar() {
   const { sidebarOpen, setSidebarOpen, notifications, profile } = useApp();
-  const [searchQuery, setSearchQuery] = useState('');
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
@@ -22,12 +20,7 @@ export function Navbar() {
           <Menu className="h-5 w-5" />
         </button>
         <div className="hidden sm:block flex-1 max-w-md">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search anything..."
-          />
-        </div>
+          <GlobalSearch />  </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">

@@ -22,6 +22,22 @@ export const ROUTES = {
   PROFILE: '/profile',
   SETTINGS: '/settings',
 } as const;
+//Static routes for navigation and routing in the application. 
+export const SEARCHABLE_PAGES = [
+  { label: 'Dashboard', route: ROUTES.DASHBOARD, keywords: 'home overview summary' },
+  { label: 'Projects', route: ROUTES.PROJECTS, keywords: 'project list workspace' },
+  { label: 'Tasks', route: ROUTES.TASKS, keywords: 'todo tasklist' },
+  { label: 'Kanban Board', route: ROUTES.KANBAN, keywords: 'board columns drag drop' },
+  { label: 'Calendar', route: ROUTES.CALENDAR, keywords: 'deadlines schedule dates' },
+  { label: 'Timeline', route: ROUTES.TIMELINE, keywords: 'gantt schedule roadmap' },
+  { label: 'Team', route: ROUTES.TEAM, keywords: 'members people roster' },
+  { label: 'Activity', route: ROUTES.ACTIVITY, keywords: 'feed history log' },
+  { label: 'Files', route: ROUTES.FILES, keywords: 'documents uploads attachments' },
+  { label: 'Notifications', route: ROUTES.NOTIFICATIONS, keywords: 'alerts inbox' },
+  { label: 'Analytics', route: ROUTES.ANALYTICS, keywords: 'charts stats metrics reports' },
+  { label: 'Profile', route: ROUTES.PROFILE, keywords: 'account personal info' },
+  { label: 'Settings', route: ROUTES.SETTINGS, keywords: 'preferences password security notifications appearance general' },
+] as const;
 
 export const STORAGE_KEYS = {
   PROJECTS: 'flowpilot_projects',
