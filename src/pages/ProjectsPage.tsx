@@ -21,11 +21,12 @@ export function ProjectsPage() {
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    if (value) setActiveSearch(value);
+    setActiveSearch(value);
   };
 
   const handleSearchClear = () => {
     setSearch('');
+    setActiveSearch('');
   };
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
