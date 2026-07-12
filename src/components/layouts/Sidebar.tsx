@@ -116,7 +116,11 @@ export function Sidebar() {
 
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute -right-3.5 top-20 flex h-7 w-7 items-center justify-center rounded-xl border-2 border-ink bg-yellow shadow-brutal-sm hover:shadow-brutal"      >
+        className={cn(
+          'absolute -right-3.5 top-20 flex h-7 w-7 items-center justify-center rounded-xl border-2 border-ink bg-yellow shadow-brutal-sm hover:shadow-brutal',
+          !sidebarOpen && 'max-md:hidden'
+        )}
+      >
         <ChevronLeft className={cn('h-4 w-4 transition-transform', !sidebarOpen && 'rotate-180')} />
       </button>
     </aside>
