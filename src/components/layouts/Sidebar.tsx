@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   Zap,
   LogOut,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useApp } from '@/context/AppContext';
@@ -35,10 +36,11 @@ const navItems = [
   { to: ROUTES.FILES, label: 'Files', icon: FileText },
   { to: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
   { to: ROUTES.ANALYTICS, label: 'Analytics', icon: BarChart3 },
+  { to: ROUTES.TRASH, label: 'Trash Bin', icon: Trash2 },
 ];
 
 export function Sidebar() {
-  const { sidebarOpen, setSidebarOpen, notifications } = useApp();
+  const { sidebarOpen, setSidebarOpen, notifications, deletedItems } = useApp();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -87,6 +89,11 @@ export function Sidebar() {
                 {sidebarOpen && item.to === ROUTES.NOTIFICATIONS && unreadCount > 0 && (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-ink bg-pink px-1.5 text-[10px] font-extrabold text-white">
                     {unreadCount}
+                  </span>
+                )}
+                {sidebarOpen && item.to === ROUTES.TRASH && deletedItems.length > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-ink bg-pink px-1.5 text-[10px] font-extrabold text-white">
+                    {deletedItems.length}
                   </span>
                 )}
               </NavLink>

@@ -50,6 +50,10 @@ interface AppContextValue {
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   undoDelete: () => void;
+  deletedItems: DeletedItem[];
+  restoreDeletedItem: (item: DeletedItem) => Promise<void>;
+  permanentlyDeleteItem: (item: DeletedItem) => Promise<void>;
+  emptyTrash: () => Promise<void>;
   updateTaskStatus: (id: string, status: Task['status']) => void;
   reorderTasks: (tasks: Task[]) => void;
   markNotificationRead: (id: string) => void;
@@ -91,7 +95,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(() =>
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);  const [deletedStack, setDeletedStack] = useState<DeletedItem[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
   const loadData = useCallback(async () => {
@@ -111,6 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const storedProjects = getFromStorage<Project[] | null>(STORAGE_KEYS.PROJECTS, null);
       const storedTasks = getFromStorage<Task[] | null>(STORAGE_KEYS.TASKS, null);
       const storedNotifs = getFromStorage<Notification[] | null>(STORAGE_KEYS.NOTIFICATIONS, null);
+      const storedDeleted = getFromStorage<DeletedItem[] | null>(STORAGE_KEYS.DELETED_ITEMS, null);
 
       setProjects(storedProjects ?? projectsData);
       setTasks(storedTasks ?? tasksData);
@@ -119,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setNotifications(storedNotifs ?? notifs);
       setFiles(filesData);
       setActivity(activityData);
+      setDeletedItems(storedDeleted ?? []);
     } catch {
       addToast('error', 'Failed to load application data');
     } finally {
@@ -186,6 +193,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [tasks, loading]);
 
   useEffect(() => {
+    if (!loading) {
+      setToStorage(STORAGE_KEYS.DELETED_ITEMS, deletedItems);
+    }
+  }, [deletedItems, loading]);
+
+  useEffect(() => {
     setToStorage(STORAGE_KEYS.SETTINGS, settings);
   }, [settings]);
 
@@ -237,7 +250,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!project) return;
 
     setProjects((prev) => prev.filter((p) => p.id !== id));
-    setDeletedStack((prev) => [...prev, { type: 'project', item: project, deletedAt: Date.now() }]);
+    setDeletedItems((prev) => [...prev, { type: 'project', item: project, deletedAt: Date.now() }]);
     addToast('success', 'Project deleted');
     try {
       await deleteProjectApi(id);
@@ -281,7 +294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!task) return;
 
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    setDeletedStack((prev) => [...prev, { type: 'task', item: task, deletedAt: Date.now() }]);
+    setDeletedItems((prev) => [...prev, { type: 'task', item: task, deletedAt: Date.now() }]);
     addToast('success', 'Task deleted');
 
     try {
@@ -292,16 +305,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const undoDelete = () => {
-    if (deletedStack.length === 0) return;
-    const toRestore = deletedStack[0];
-    setDeletedStack((prev) => prev.slice(1));
+    if (deletedItems.length === 0) return;
+    const toRestore = deletedItems[deletedItems.length - 1];
+    setDeletedItems((prev) => prev.slice(0, -1));
 
     if (toRestore.type === 'task') {
-      setTasks((prev) => [...prev, toRestore.item as Task]);
+      setTasks((prev) => [toRestore.item as Task, ...prev]);
     } else {
-      setProjects((prev) => [...prev, toRestore.item as Project]);
+      setProjects((prev) => [toRestore.item as Project, ...prev]);
     }
     addToast('info', 'Item restored');
+  };
+
+  const restoreDeletedItem = async (deletedItem: DeletedItem) => {
+    setDeletedItems((prev) => prev.filter((d) => d.item.id !== deletedItem.item.id));
+    if (deletedItem.type === 'task') {
+      const task = deletedItem.item as Task;
+      setTasks((prev) => [task, ...prev]);
+      addToast('success', `Task "${task.title}" restored`);
+    } else {
+      const project = deletedItem.item as Project;
+      setProjects((prev) => [project, ...prev]);
+      addToast('success', `Project "${project.name}" restored`);
+    }
+  };
+
+  const permanentlyDeleteItem = async (deletedItem: DeletedItem) => {
+    setDeletedItems((prev) => prev.filter((d) => d.item.id !== deletedItem.item.id));
+    addToast('success', `${deletedItem.type === 'task' ? 'Task' : 'Project'} permanently deleted`);
+  };
+
+  const emptyTrash = async () => {
+    setDeletedItems([]);
+    addToast('success', 'Trash bin emptied');
   };
 
   const updateTaskStatus = (id: string, status: Task['status']) => {
@@ -413,6 +449,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateTask,
         deleteTask,
         undoDelete,
+        deletedItems,
+        restoreDeletedItem,
+        permanentlyDeleteItem,
+        emptyTrash,
         updateTaskStatus,
         reorderTasks,
         markNotificationRead,

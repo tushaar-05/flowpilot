@@ -21,6 +21,7 @@ export const ROUTES = {
   ANALYTICS: '/analytics',
   PROFILE: '/profile',
   SETTINGS: '/settings',
+  TRASH: '/trash',
 } as const;
 //Static routes for navigation and routing in the application. 
 export const SEARCHABLE_PAGES = [
@@ -37,6 +38,7 @@ export const SEARCHABLE_PAGES = [
   { label: 'Analytics', route: ROUTES.ANALYTICS, keywords: 'charts stats metrics reports' },
   { label: 'Profile', route: ROUTES.PROFILE, keywords: 'account personal info' },
   { label: 'Settings', route: ROUTES.SETTINGS, keywords: 'preferences password security notifications appearance general' },
+  { label: 'Trash Bin', route: ROUTES.TRASH, keywords: 'trash bin deleted restore' },
 ] as const;
 
 export const STORAGE_KEYS = {
@@ -48,6 +50,7 @@ export const STORAGE_KEYS = {
   THEME: 'flowpilot_theme',
   USERS: 'flowpilot_users',
   SESSION: 'flowpilot_session',
+  DELETED_ITEMS: 'flowpilot_deleted_items',
 } as const;
 
 export const API_DELAYS = {

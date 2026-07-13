@@ -32,6 +32,7 @@ import { NotificationsPage } from '@/pages/NotificationsPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { TrashPage } from '@/pages/TrashPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ROUTES } from '@/constants';
 
@@ -76,6 +77,7 @@ export default function App() {
                   <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
                   <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
                   <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                  <Route path={ROUTES.TRASH} element={<TrashPage />} />
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />
