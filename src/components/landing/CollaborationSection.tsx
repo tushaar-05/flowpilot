@@ -22,7 +22,7 @@ export function CollaborationSection() {
           </h2>
           <p className="mt-5 text-lg text-muted leading-relaxed">
             Whether you&apos;re a 4-person startup or a 40-person scale-up, FlowPilot keeps
-            convesrations, tasks, and files in one place — so nothing falls through the cracks.
+            conversations, tasks, and files in one place — so nothing falls through the cracks.
           </p>
 
           <ul className="mt-8 space-y-4">
