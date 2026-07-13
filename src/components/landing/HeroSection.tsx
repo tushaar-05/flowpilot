@@ -85,13 +85,10 @@ export function HeroSection() {
               </Button>
             </Link>
             <Link to={ROUTES.DASHBOARD}>
-<<<<<<< HEAD
               <Button variant="outline" size="lg" className="w-full text-black">
                 <Play className="h-5 w-5" /> sign in
               </Button>
             </Link>
-=======
->>>>>>> origin/main
           </div>
 
           <p className="mt-6 text-sm font-semibold text-muted">
