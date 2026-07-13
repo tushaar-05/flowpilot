@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { formatRelative, getDueDateLabel, capitalize } from '@/utils/helpers';
+import { formatRelative, getDueDateLabel, capitalize, getProjectDeadlineBadge } from '@/utils/helpers';
 import { ROUTES } from '@/constants';
 
 const weekData = [
@@ -32,8 +32,12 @@ const weekData = [
 ];
 
 export function DashboardPage() {
-  const { projects, tasks, users, activity } = useApp();
+  const { projects, tasks, users, activity, checkProjectDeadlines } = useApp();
   const { user } = useAuth();
+
+  useEffect(() => {
+    checkProjectDeadlines();
+  }, [checkProjectDeadlines]);
 
   const openTasks = tasks.filter((t) => t.status !== 'completed').length;
   const completedTasks = tasks.filter((t) => t.status === 'completed').length;
@@ -167,7 +171,21 @@ export function DashboardPage() {
           </div>
           {topProject ? (
             <>
-              <h3 className="text-2xl font-extrabold text-ink">{topProject.name}</h3>
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h3 className="text-2xl font-extrabold text-ink leading-tight">{topProject.name}</h3>
+                {(() => {
+                  const deadlineBadge = getProjectDeadlineBadge(topProject.endDate, topProject.status);
+                  if (deadlineBadge) {
+                    return (
+                      <Badge color={deadlineBadge.color} className="shrink-0 whitespace-nowrap mt-1">
+                        <span className="mr-1">{deadlineBadge.icon}</span>
+                        {deadlineBadge.label}
+                      </Badge>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
               <p className="text-sm text-ink/70 mt-2 line-clamp-2">{topProject.description}</p>
               <div className="mt-6">
                 <div className="flex justify-between text-sm font-bold mb-2">
