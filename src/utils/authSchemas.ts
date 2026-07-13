@@ -21,9 +21,18 @@ export const registerSchema = z.object({
   email: z.string().email('Enter a valid email address'),
   password: passwordSchema,
   confirmPassword: z.string(),
+  placeOfBirth: z.string().min(1, 'Place of birth is required'),
+  petName: z.string().min(1, 'Pet name is required'),
+  favPlace: z.string().min(1, 'Favorite place is required'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
+});
+
+export const securityQuestionsSchema = z.object({
+  placeOfBirth: z.string().min(1, 'Place of birth is required'),
+  petName: z.string().min(1, 'Pet name is required'),
+  favPlace: z.string().min(1, 'Favorite place is required'),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -81,3 +90,4 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 export type ProfileFormData = z.infer<typeof profileSchema>;
+export type SecurityQuestionsFormData = z.infer<typeof securityQuestionsSchema>;

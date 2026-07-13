@@ -154,6 +154,11 @@ export interface AuthUser {
   password: string;
   avatar: string;
   createdAt: string;
+  securityQuestions?: {
+    placeOfBirth: string;
+    petName: string;
+    favPlace: string;
+  };
 }
 
 export interface AuthSession {
