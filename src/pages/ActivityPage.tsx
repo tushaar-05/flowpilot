@@ -72,7 +72,7 @@ export function ActivityPage() {
         />
       </div>
 
-      <Card padding="lg">
+      <Card padding="lg" className="p-4 sm:p-8 overflow-hidden">
         <div className="relative">
           <div className="absolute left-5 top-0 bottom-0 w-px bg-border" />
           <div className="space-y-6">
@@ -81,16 +81,16 @@ export function ActivityPage() {
               const Icon = typeIcons[item.type];
 
               return (
-                <div key={item.id} className="relative flex gap-4 pl-12">
+                <div key={item.id} className="relative flex gap-3 sm:gap-4 pl-10 sm:pl-12 min-w-0">
                   <div className={`absolute left-2.5 flex h-6 w-6 items-center justify-center rounded-full ${typeColors[item.type]}`}>
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
                   </div>
-                  <div className="flex-1 rounded-lg border border-border p-4 hover:bg-slate-50/50 transition-colors">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0 rounded-lg border border-border p-3 sm:p-4 hover:bg-slate-50/50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
                         <Avatar src={user?.avatar} name={user?.name ?? '?'} size="sm" />
-                        <div>
-                          <p className="text-sm">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm break-words">
                             <span className="font-medium">{user?.name}</span>{' '}
                             <span className="text-muted">{item.action}</span>{' '}
                             <span className="font-medium text-primary">{item.target}</span>
@@ -98,7 +98,7 @@ export function ActivityPage() {
                           <p className="text-xs text-muted mt-1 capitalize">{item.type} activity</p>
                         </div>
                       </div>
-                      <time className="text-xs text-muted whitespace-nowrap">
+                      <time className="text-xs text-muted whitespace-nowrap shrink-0">
                         {formatRelative(item.createdAt)}
                       </time>
                     </div>
