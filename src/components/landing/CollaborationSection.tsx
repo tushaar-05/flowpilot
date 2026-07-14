@@ -57,18 +57,18 @@ export function CollaborationSection() {
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-2xl border-2 border-ink bg-primary/10">
+            <div className="rounded-2xl border-2 border-ink bg-primary/10 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
                 <span className="text-sm font-bold">Priya left a comment</span>
               </div>
               <p className="text-sm text-muted">&quot;API migration is ready for review — can someone from platform take a look?&quot;</p>
             </div>
-            <div className="rounded-2xl border-2 border-ink bg-yellow/20">
+            <div className="rounded-2xl border-2 border-ink bg-yellow/20 p-4">
               <p className="text-sm font-bold text-ink">Jordan moved &quot;Checkout redesign&quot; → Review</p>
               <p className="text-xs text-muted mt-1">Northwind Labs · 2 min ago</p>
             </div>
-            <div className="rounded-2xl border-2 border-ink bg-secondary/15">
+            <div className="rounded-2xl border-2 border-ink bg-secondary/15 p-4">
               <p className="text-sm font-bold text-ink">🎉 Mobile App v2 hit 85% completion</p>
             </div>
           </div>
