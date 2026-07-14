@@ -1,0 +1,39 @@
+[
+  {
+    "id": "notice-1",
+    "title": "Company-Wide Town Hall Meeting",
+    "description": "Please join us for our monthly company-wide town hall meeting. We will discuss Q2 updates, upcoming projects, and welcome new team members. Q&A session will follow.",
+    "authorId": "user-2",
+    "authorName": "Marcus Johnson",
+    "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
+    "createdAt": "2026-07-13T10:00:00Z",
+    "audience": "everyone",
+    "pinned": true
+  },
+  {
+    "id": "notice-2",
+    "title": "Frontend Design System Review",
+    "description": "The Frontend Team will meet on Friday at 2:00 PM to review the new design system. Please ensure all assigned tasks are updated beforehand.",
+    "authorId": "user-1",
+    "authorName": "Sarah Chen",
+    "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+    "createdAt": "2026-07-14T09:30:00Z",
+    "audience": "team",
+    "targetId": "Engineering",
+    "pinned": false,
+    "expiresAt": "2026-07-20T17:00:00Z"
+  },
+  {
+    "id": "notice-3",
+    "title": "Sprint Retrospective: Platform Redesign",
+    "description": "Sprint retro for the Platform Redesign project. We will review our velocity, identify bottlenecks, and plan improvements for the next iteration.",
+    "authorId": "user-1",
+    "authorName": "Sarah Chen",
+    "authorAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+    "createdAt": "2026-07-14T11:00:00Z",
+    "audience": "project",
+    "targetId": "proj-1",
+    "pinned": false,
+    "expiresAt": "2026-07-16T18:00:00Z"
+  }
+]

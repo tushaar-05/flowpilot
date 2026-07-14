@@ -17,6 +17,7 @@ import {
   Zap,
   LogOut,
   Trash2,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useApp } from '@/context/AppContext';
@@ -32,6 +33,7 @@ const navItems = [
   { to: ROUTES.CALENDAR, label: 'Calendar', icon: Calendar },
   { to: ROUTES.TIMELINE, label: 'Timeline', icon: GanttChart },
   { to: ROUTES.TEAM, label: 'Team', icon: Users },
+  { to: ROUTES.NOTICES, label: 'Notice Board', icon: Megaphone },
   { to: ROUTES.ACTIVITY, label: 'Activity', icon: Activity },
   { to: ROUTES.FILES, label: 'Files', icon: FileText },
   { to: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },

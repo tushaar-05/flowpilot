@@ -9,6 +9,8 @@ import {
   Clock,
   Flame,
   PartyPopper,
+  Megaphone,
+  Pin,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardTitle } from '@/components/ui/Card';
@@ -20,6 +22,7 @@ import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelative, getDueDateLabel, capitalize, getProjectDeadlineBadge } from '@/utils/helpers';
 import { ROUTES } from '@/constants';
+import { cn } from '@/utils/cn';
 
 const weekData = [
   { day: 'Mon', done: 4, total: 8 },
@@ -32,7 +35,7 @@ const weekData = [
 ];
 
 export function DashboardPage() {
-  const { projects, tasks, users, activity, checkProjectDeadlines } = useApp();
+  const { projects, tasks, users, activity, checkProjectDeadlines, notices } = useApp();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -68,6 +71,36 @@ export function DashboardPage() {
 );
 
   const topProject = [...activeProjects].sort((a, b) => b.progress - a.progress)[0];
+
+  // Get active and relevant notices for the user
+  const activeNotices = useMemo(() => {
+    const now = new Date();
+    return notices
+      .filter((n) => {
+        // Exclude expired
+        if (n.expiresAt && new Date(n.expiresAt) < now) return false;
+        
+        // Filter relevance
+        if (n.audience === 'everyone') return true;
+        
+        const currentUserProfile = users.find((u) => u.email.toLowerCase() === user?.email.toLowerCase());
+        if (!currentUserProfile) return false;
+        
+        if (n.audience === 'team') {
+          return n.targetId?.toLowerCase() === currentUserProfile.department?.toLowerCase();
+        }
+        if (n.audience === 'project') {
+          return currentUserProfile.projectIds.includes(n.targetId || '');
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      })
+      .slice(0, 2);
+  }, [notices, user, users]);
 
   return (
     <div className="space-y-10">
@@ -107,6 +140,59 @@ export function DashboardPage() {
           </div>
         </div>
       </motion.section>
+
+      {/* Notices Banner */}
+      {activeNotices.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-extrabold uppercase tracking-wider text-ink flex items-center gap-2">
+              <Megaphone className="h-4.5 w-4.5 text-accent animate-pulse" />
+              Latest Announcements
+            </h2>
+            <Link to={ROUTES.NOTICES} className="text-xs font-extrabold text-primary hover:underline">
+              View Notice Board →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeNotices.map((notice) => (
+              <div
+                key={notice.id}
+                className={cn(
+                  "p-4 rounded-2xl border-2 border-ink bg-surface shadow-brutal-sm hover:shadow-brutal transition-all relative flex flex-col justify-between",
+                  notice.pinned && "bg-yellow/5 border-yellow-500 shadow-brutal-yellow"
+                )}
+              >
+                {notice.pinned && (
+                  <Pin className="absolute right-3 top-3 h-4.5 w-4.5 text-yellow-500 fill-current rotate-45" />
+                )}
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase border-2 border-ink px-1.5 py-0.5 rounded-full",
+                      notice.audience === 'everyone' ? 'bg-blue-100 text-blue-800' :
+                      notice.audience === 'team' ? 'bg-emerald-100 text-emerald-800' :
+                      'bg-purple-100 text-purple-800'
+                    )}>
+                      {notice.audience === 'everyone' ? 'Everyone' :
+                       notice.audience === 'team' ? `Team: ${notice.targetId}` :
+                       'Project'}
+                    </span>
+                    <span className="text-[10px] font-medium text-muted">
+                      {formatRelative(notice.createdAt)}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-ink text-sm truncate pr-6">{notice.title}</h3>
+                  <p className="text-xs text-ink/70 mt-1 line-clamp-2">{notice.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* Stat bento grid */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">

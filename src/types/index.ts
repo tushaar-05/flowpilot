@@ -166,3 +166,18 @@ export interface AuthSession {
   email: string;
   rememberMe: boolean;
 }
+
+export interface Notice {
+  id: string;
+  title: string;
+  description: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  createdAt: string;
+  audience: 'everyone' | 'team' | 'project';
+  targetId?: string; // department name or project ID
+  expiresAt?: string;
+  pinned: boolean;
+}
+
