@@ -37,17 +37,17 @@ export function HowItWorksSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12 }}
-              className="relative"
+              className="relative flex flex-col items-center text-center"
             >
               <div
-                className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-ink ${s.color} text-white font-extrabold text-lg shadow-brutal mb-6`}
+                  className={`flex h-24 w-full max-w-[240px] items-center justify-center rounded-2xl border-2 border-ink ${s.color} text-white font-extrabold text-lg text-center px-6 shadow-brutal mb-8`}
               >
-                {s.step}
+                   {s.title}
               </div>
               <h3 className="text-2xl font-extrabold text-ink mb-3">{s.title}</h3>
-              <p className="text-base text-muted leading-relaxed">{s.description}</p>
+              <p className="max-w-sm text-base text-muted leading-relaxed">{s.description}</p>
               {i < steps.length - 1 && (
-                <div className="hidden md:block absolute top-7 -right-4 w-8 border-t-2 border-dashed border-ink" />
+                <div className="hidden md:block absolute top-12 -right-24 w-40 border-t-2 border-dashed border-ink" />
               )}
             </motion.div>
           ))}

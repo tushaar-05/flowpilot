@@ -33,7 +33,7 @@ export function LandingFooter() {
               <ul className="space-y-2 text-muted font-semibold">
                  <li><Link to="/about" className="hover:text-ink">About</Link></li>
                 <li><Link to="/blog" className="hover:text-ink">Blog</Link></li>
-                <li><Link to="/about" className="hover:text-ink">Careers</Link></li>
+                <li><Link to="/careers" className="hover:text-ink">Careers</Link></li>
               </ul>
             </div>
             <div>

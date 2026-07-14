@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useApp } from '@/context/AppContext';
-import { formatDate, getPriorityColor, getStatusColor, capitalize } from '@/utils/helpers';
+import { formatDate, getPriorityColor, getStatusColor, capitalize, getProjectDeadlineBadge } from '@/utils/helpers';
 import { ROUTES } from '@/constants';
 import type { Task } from '@/types';
 
@@ -99,6 +99,18 @@ export function ProjectDetailPage() {
             <div className="flex flex-wrap gap-2 mt-3">
               <Badge className={getStatusColor(project.status)}>{capitalize(project.status)}</Badge>
               <Badge className={getPriorityColor(project.priority)}>{capitalize(project.priority)}</Badge>
+              {(() => {
+                const deadlineBadge = getProjectDeadlineBadge(project.endDate, project.status);
+                if (deadlineBadge) {
+                  return (
+                    <Badge color={deadlineBadge.color}>
+                      <span className="mr-1">{deadlineBadge.icon}</span>
+                      {deadlineBadge.label}
+                    </Badge>
+                  );
+                }
+                return null;
+              })()}
               {project.tags.map((tag) => (
                 <Badge key={tag} variant="outline" className="gap-1">
                   <Tag className="h-3 w-3" /> {tag}

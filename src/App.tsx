@@ -29,13 +29,16 @@ import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { KanbanPage } from '@/pages/KanbanPage';
 import { CalendarPage } from '@/pages/CalendarPage';
+import { TimelinePage } from '@/pages/TimelinePage';
 import { TeamPage } from '@/pages/TeamPage';
 import { ActivityPage } from '@/pages/ActivityPage';
 import { FilesPage } from '@/pages/FilesPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
+import { NoticeBoardPage } from '@/pages/NoticeBoardPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { TrashPage } from '@/pages/TrashPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ROUTES } from '@/constants';
 

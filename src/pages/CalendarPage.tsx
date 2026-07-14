@@ -94,7 +94,7 @@ export function CalendarPage() {
                 )}
               >
                 <span className={cn(
-                  'text-sm font-medium',
+                  'text-sm font-medium text-center block w-full',
                   isToday(day) && 'text-primary'
                 )}>
                   {format(day, 'd')}

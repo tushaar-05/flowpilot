@@ -71,7 +71,11 @@ export function AnalyticsPage() {
         <Card>
           <p className="text-sm text-muted">Completion Rate</p>
           <p className="text-3xl font-bold mt-1 text-secondary">
-            {Math.round((tasks.filter((t) => t.status === 'completed').length / tasks.length) * 100)}%
+          {tasks.length === 0
+          ? 0
+            : Math.round(
+          (tasks.filter((t) => t.status === 'completed').length / tasks.length) * 100
+          )}%
           </p>
         </Card>
         <Card>

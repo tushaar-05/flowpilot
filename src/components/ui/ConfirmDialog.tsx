@@ -8,7 +8,7 @@ interface ConfirmDialogProps {
   title: string;
   message: string;
   confirmLabel?: string;
-  variant?: 'danger' | 'primary';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'yellow' | 'dark' | 'accent';
   loading?: boolean;
 }
 
