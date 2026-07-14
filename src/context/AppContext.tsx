@@ -17,17 +17,20 @@ import type {
   UserProfile,
   AppSettings,
   DeletedItem,
+  Notice,
 } from '@/types';
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from '@/constants';
-import { getFromStorage, setToStorage } from '@/utils/storage';
-import { generateId } from '@/utils/helpers';
+import { getFromStorage, setToStorage, removeFromStorage } from '@/utils/storage';
+import { generateId, formatDate } from '@/utils/helpers';
 import { fetchProjects, createProjectApi, updateProjectApi, deleteProjectApi } from '@/services/projectService';
 import { fetchTasks, createTaskApi, updateTaskApi, deleteTaskApi } from '@/services/taskService';
 import { fetchUsers, fetchCurrentUser } from '@/services/userService';
 import { fetchNotifications } from '@/services/notificationService';
 import { fetchFiles } from '@/services/fileService';
 import { fetchActivity } from '@/services/activityService';
+import { fetchNotices, createNoticeApi, updateNoticeApi, deleteNoticeApi } from '@/services/noticeService';
 import { useToast } from './ToastContext';
+import { useAuth } from './AuthContext';
 
 interface AppContextValue {
   loading: boolean;
@@ -36,6 +39,7 @@ interface AppContextValue {
   users: User[];
   currentUser: User | null;
   notifications: Notification[];
+  notices: Notice[];
   files: FileItem[];
   activity: ActivityItem[];
   profile: UserProfile;
@@ -48,8 +52,16 @@ interface AppContextValue {
   createTask: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  createNotice: (data: Omit<Notice, 'id' | 'createdAt' | 'authorId' | 'authorName' | 'authorAvatar'>) => Promise<void>;
+  updateNotice: (notice: Notice) => Promise<void>;
+  deleteNotice: (id: string) => Promise<void>;
   undoDelete: () => void;
+  deletedItems: DeletedItem[];
+  restoreDeletedItem: (item: DeletedItem) => Promise<void>;
+  permanentlyDeleteItem: (item: DeletedItem) => Promise<void>;
+  emptyTrash: () => Promise<void>;
   updateTaskStatus: (id: string, status: Task['status']) => void;
+  reorderTasks: (tasks: Task[]) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   deleteNotification: (id: string) => void;
@@ -58,6 +70,7 @@ interface AppContextValue {
   uploadFile: (file: Omit<FileItem, 'id' | 'uploadedAt'>) => void;
   deleteFile: (id: string) => void;
   refreshData: () => Promise<void>;
+  checkProjectDeadlines: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -76,28 +89,28 @@ const defaultProfile: UserProfile = {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { addToast } = useToast();
+  const { user: authUser, updateAuthUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [profile, setProfile] = useState<UserProfile>(() =>
-    getFromStorage(STORAGE_KEYS.PROFILE, defaultProfile)
-  );
+  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [settings, setSettings] = useState<AppSettings>(() =>
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [deletedStack, setDeletedStack] = useState<DeletedItem[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [projectsData, tasksData, usersData, user, notifs, filesData, activityData] =
+      const [projectsData, tasksData, usersData, user, notifs, filesData, activityData, noticesMockData] =
         await Promise.all([
           fetchProjects(),
           fetchTasks(),
@@ -106,19 +119,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
           fetchNotifications(),
           fetchFiles(),
           fetchActivity(),
+          fetchNotices(),
         ]);
 
       const storedProjects = getFromStorage<Project[] | null>(STORAGE_KEYS.PROJECTS, null);
       const storedTasks = getFromStorage<Task[] | null>(STORAGE_KEYS.TASKS, null);
       const storedNotifs = getFromStorage<Notification[] | null>(STORAGE_KEYS.NOTIFICATIONS, null);
+      const storedDeleted = getFromStorage<DeletedItem[] | null>(STORAGE_KEYS.DELETED_ITEMS, null);
+      const storedNotices = getFromStorage<Notice[] | null>(STORAGE_KEYS.NOTICES, null);
+      const storedUsers = getFromStorage<User[] | null>('flowpilot_app_users', null);
 
       setProjects(storedProjects ?? projectsData);
       setTasks(storedTasks ?? tasksData);
-      setUsers(usersData);
+      setUsers(storedUsers ?? usersData);
       setCurrentUser(user);
       setNotifications(storedNotifs ?? notifs);
+      setNotices(storedNotices ?? noticesMockData);
       setFiles(filesData);
       setActivity(activityData);
+      setDeletedItems(storedDeleted ?? []);
     } catch {
       addToast('error', 'Failed to load application data');
     } finally {
@@ -131,24 +150,116 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   useEffect(() => {
-    if (!loading && projects.length > 0) {
+    if (loading) return;
+
+    if (authUser) {
+      const found = users.find((u) => u.email.toLowerCase() === authUser.email.toLowerCase());
+      if (found) {
+        setCurrentUser(found);
+      } else {
+        const newUser: User = {
+          id: authUser.email,
+          name: authUser.name,
+          email: authUser.email,
+          role: 'admin',
+          avatar: authUser.avatar,
+          department: 'Engineering',
+          phone: '',
+          bio: 'Registered user.',
+          skills: [],
+          joinedAt: authUser.createdAt || new Date().toISOString(),
+          projectIds: ['proj-1', 'proj-2'],
+        };
+        setUsers((prev) => {
+          if (prev.some((u) => u.email.toLowerCase() === authUser.email.toLowerCase())) {
+            return prev;
+          }
+          return [...prev, newUser];
+        });
+        setCurrentUser(newUser);
+      }
+
+      // Load user-specific profile
+      const userProfileKey = `${STORAGE_KEYS.PROFILE}_${authUser.email.toLowerCase()}`;
+      const initialProfile: UserProfile = {
+        id: found?.id || authUser.email,
+        name: found?.name || authUser.name,
+        email: found?.email || authUser.email,
+        phone: found?.phone || '',
+        bio: found?.bio || '',
+        location: '',
+        website: '',
+        skills: found?.skills || [],
+        avatar: found?.avatar || authUser.avatar,
+      };
+      setProfile(getFromStorage<UserProfile>(userProfileKey, initialProfile));
+    } else {
+      setCurrentUser(null);
+      setProfile(defaultProfile);
+    }
+  }, [authUser, users, loading]);
+
+  useEffect(() => {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.PROJECTS, projects);
     }
   }, [projects, loading]);
 
   useEffect(() => {
-    if (!loading && tasks.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.TASKS, tasks);
     }
   }, [tasks, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage(STORAGE_KEYS.DELETED_ITEMS, deletedItems);
+    }
+  }, [deletedItems, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage(STORAGE_KEYS.NOTICES, notices);
+    }
+  }, [notices, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage('flowpilot_app_users', users);
+    }
+  }, [users, loading]);
 
   useEffect(() => {
     setToStorage(STORAGE_KEYS.SETTINGS, settings);
   }, [settings]);
 
   useEffect(() => {
+    const root = window.document.documentElement;
+    const applyTheme = (theme: string) => {
+      root.classList.remove('light', 'dark');
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        root.classList.add(systemTheme);
+      } else {
+        root.classList.add(theme);
+      }
+    };
+
+    applyTheme(settings.theme || 'light');
+
+    if (settings.theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => {
+        applyTheme('system');
+      };
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [settings.theme]);
+
+  useEffect(() => {
     if (!loading) {
-      setToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications.filter((n) => n.read));
+      setToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
     }
   }, [notifications, loading]);
 
@@ -194,7 +305,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!project) return;
 
     setProjects((prev) => prev.filter((p) => p.id !== id));
-    setDeletedStack((prev) => [...prev, { type: 'project', item: project, deletedAt: Date.now() }]);
+    setDeletedItems((prev) => [...prev, { type: 'project', item: project, deletedAt: Date.now() }]);
     addToast('success', 'Project deleted');
     try {
       await deleteProjectApi(id);
@@ -238,7 +349,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!task) return;
 
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    setDeletedStack((prev) => [...prev, { type: 'task', item: task, deletedAt: Date.now() }]);
+    setDeletedItems((prev) => [...prev, { type: 'task', item: task, deletedAt: Date.now() }]);
     addToast('success', 'Task deleted');
 
     try {
@@ -249,16 +360,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const undoDelete = () => {
-    if (deletedStack.length === 0) return;
-    const toRestore = deletedStack[0];
-    setDeletedStack((prev) => prev.slice(1));
+    if (deletedItems.length === 0) return;
+    const toRestore = deletedItems[deletedItems.length - 1];
+    setDeletedItems((prev) => prev.slice(0, -1));
 
     if (toRestore.type === 'task') {
-      setProjects((prev) => [...prev, toRestore.item as unknown as Project]);
+      setTasks((prev) => [toRestore.item as Task, ...prev]);
     } else {
-      setTasks((prev) => [...prev, toRestore.item as unknown as Task]);
+      setProjects((prev) => [toRestore.item as Project, ...prev]);
     }
     addToast('info', 'Item restored');
+  };
+
+  const restoreDeletedItem = async (deletedItem: DeletedItem) => {
+    setDeletedItems((prev) => prev.filter((d) => d.item.id !== deletedItem.item.id));
+    if (deletedItem.type === 'task') {
+      const task = deletedItem.item as Task;
+      setTasks((prev) => [task, ...prev]);
+      addToast('success', `Task "${task.title}" restored`);
+    } else {
+      const project = deletedItem.item as Project;
+      setProjects((prev) => [project, ...prev]);
+      addToast('success', `Project "${project.name}" restored`);
+    }
+  };
+
+  const permanentlyDeleteItem = async (deletedItem: DeletedItem) => {
+    setDeletedItems((prev) => prev.filter((d) => d.item.id !== deletedItem.item.id));
+    addToast('success', `${deletedItem.type === 'task' ? 'Task' : 'Project'} permanently deleted`);
+  };
+
+  const emptyTrash = async () => {
+    setDeletedItems([]);
+    addToast('success', 'Trash bin emptied');
   };
 
   const updateTaskStatus = (id: string, status: Task['status']) => {
@@ -267,6 +401,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
       )
     );
+  };
+
+  const reorderTasks = (newTasks: Task[]) => {
+    setTasks(newTasks);
   };
 
   const markNotificationRead = (id: string) => {
@@ -288,6 +426,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = (updated: UserProfile) => {
     setProfile(updated);
+    if (authUser) {
+      const userProfileKey = `${STORAGE_KEYS.PROFILE}_${updated.email.toLowerCase()}`;
+      setToStorage(userProfileKey, updated);
+
+      const updatedFields = {
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        bio: updated.bio,
+        skills: updated.skills,
+        avatar: updated.avatar,
+      };
+
+      // Sync the user list in state
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.email.toLowerCase() === authUser.email.toLowerCase()
+            ? { ...u, ...updatedFields }
+            : u
+        )
+      );
+
+      // Also update the currentUser state directly
+      setCurrentUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+
+      // If email changed, remove the old profile storage key
+      if (authUser.email.toLowerCase() !== updated.email.toLowerCase()) {
+        removeFromStorage(`${STORAGE_KEYS.PROFILE}_${authUser.email.toLowerCase()}`);
+      }
+
+      // Also update authUser, STORAGE_KEYS.USERS, and flowpilot_session
+      updateAuthUser(updated.name, updated.email, updated.avatar);
+    }
     addToast('success', 'Profile updated');
   };
 
@@ -311,6 +482,124 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addToast('success', 'File deleted');
   };
 
+  const checkProjectDeadlines = useCallback(() => {
+    if (loading || projects.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const newNotifications: Notification[] = [];
+    let updated = false;
+
+    projects.forEach((project) => {
+      if (project.status === 'completed' || project.status === 'archived') {
+        return;
+      }
+
+      const endDate = new Date(project.endDate);
+      endDate.setHours(0, 0, 0, 0);
+
+      const diffTime = endDate.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      let reminderPeriod: 'soon' | 'tomorrow' | 'today' | 'overdue' | null = null;
+      let message = '';
+
+      const formattedDate = formatDate(project.endDate, 'MMMM d, yyyy');
+
+      if (diffDays < 0) {
+        reminderPeriod = 'overdue';
+        message = `${project.name} is overdue since ${formattedDate}. Please review any remaining tasks.`;
+      } else if (diffDays === 0) {
+        reminderPeriod = 'today';
+        message = `${project.name} is due today (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      } else if (diffDays === 1) {
+        reminderPeriod = 'tomorrow';
+        message = `${project.name} is due tomorrow (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      } else if (diffDays === 2 || diffDays === 3) {
+        reminderPeriod = 'soon';
+        message = `${project.name} is due in ${diffDays} days (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      }
+
+      if (reminderPeriod) {
+        const alreadyExists = [...notifications, ...newNotifications].some((n) => {
+          if (n.category !== 'project' || n.link !== `/projects/${project.id}`) {
+            return false;
+          }
+          if (reminderPeriod === 'overdue') return n.message.includes('overdue');
+          if (reminderPeriod === 'today') return n.message.includes('due today');
+          if (reminderPeriod === 'tomorrow') return n.message.includes('due tomorrow') || n.message.includes('due in 1 day');
+          if (reminderPeriod === 'soon') return n.message.includes('due in 3 days') || n.message.includes('due in 2 days') || n.message.includes('due soon');
+          return false;
+        });
+
+        if (!alreadyExists) {
+          const newNotif: Notification = {
+            id: generateId(),
+            title: 'Project Deadline Reminder',
+            message: message,
+            category: 'project',
+            read: false,
+            createdAt: new Date().toISOString(),
+            link: `/projects/${project.id}`,
+          };
+          newNotifications.push(newNotif);
+          updated = true;
+        }
+      }
+    });
+
+    if (updated) {
+      setNotifications((prev) => {
+        const nextNotifs = [...newNotifications, ...prev];
+        setToStorage(STORAGE_KEYS.NOTIFICATIONS, nextNotifs);
+        return nextNotifs;
+      });
+    }
+  }, [loading, projects, notifications]);
+
+  const createNotice = async (data: Omit<Notice, 'id' | 'createdAt' | 'authorId' | 'authorName' | 'authorAvatar'>) => {
+    if (!currentUser) return;
+    const now = new Date().toISOString();
+    const notice: Notice = {
+      ...data,
+      id: generateId(),
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      createdAt: now,
+    };
+    setNotices((prev) => [notice, ...prev]);
+    addToast('success', `Notice "${notice.title}" created`);
+    try {
+      await createNoticeApi(notice);
+    } catch {
+      addToast('error', 'Failed to sync notice');
+    }
+  };
+
+  const updateNotice = async (notice: Notice) => {
+    setNotices((prev) =>
+      prev.map((n) => (n.id === notice.id ? notice : n))
+    );
+    addToast('success', 'Notice updated');
+    try {
+      await updateNoticeApi(notice);
+    } catch {
+      addToast('error', 'Failed to update notice');
+    }
+  };
+
+  const deleteNotice = async (id: string) => {
+    setNotices((prev) => prev.filter((n) => n.id !== id));
+    addToast('success', 'Notice deleted');
+    try {
+      await deleteNoticeApi(id);
+    } catch {
+      addToast('error', 'Failed to delete notice');
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -320,6 +609,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         users,
         currentUser,
         notifications,
+        notices,
         files,
         activity,
         profile,
@@ -332,8 +622,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createTask,
         updateTask,
         deleteTask,
+        createNotice,
+        updateNotice,
+        deleteNotice,
         undoDelete,
+        deletedItems,
+        restoreDeletedItem,
+        permanentlyDeleteItem,
+        emptyTrash,
         updateTaskStatus,
+        reorderTasks,
         markNotificationRead,
         markAllNotificationsRead,
         deleteNotification,
@@ -342,6 +640,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadFile,
         deleteFile,
         refreshData: loadData,
+        checkProjectDeadlines,
       }}
     >
       {children}

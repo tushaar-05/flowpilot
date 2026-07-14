@@ -71,7 +71,7 @@ export function LandingNav() {
           >
             <div className="px-6 py-4 space-y-3">
               {links.map((l) => (
-                <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="block text-base font-bold py-2">
+                <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="block text-base font-bold py-2 text-background hover:text-background">
                   {l.label}
                 </a>
               ))}
@@ -81,7 +81,7 @@ export function LandingNav() {
                 </Link>
                 {!isAuthenticated && (
                   <Link to={ROUTES.LOGIN} onClick={() => setOpen(false)}>
-                    <Button variant="outline" className="w-full">Sign In</Button>
+                    <Button variant="primary" className="w-full">Sign In</Button>
                   </Link>
                 )}
               </div>

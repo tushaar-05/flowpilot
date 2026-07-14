@@ -1,5 +1,6 @@
-import { useState, useMemo, useRef } from 'react';
-import { Plus, CheckSquare, Trash2, Undo2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Plus, CheckSquare, Trash2, Undo2, Download } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { FilterDropdown } from '@/components/ui/FilterDropdown';
@@ -28,36 +29,77 @@ export function TasksPage() {
   const [sortBy, setSortBy] = useState<SortField>('dueDate');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('newTask') === 'true') {
+      setEditingTask(null);
+      setModalOpen(true);
+    }
+  }, [searchParams]); 
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const sortedRef = useRef<Task[]>([]);
   const debouncedSearch = useDebounce(search);
+
+  useEffect(() => {
+    const taskId = searchParams.get('taskId');
+    if (!taskId) return;
+
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setEditingTask(task);
+      setModalOpen(true);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('taskId');
+        return next;
+      },
+      { replace: true }
+    );
+    // Deep-link is only relevant on initial navigation into this page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     let result = [...tasks];
+    const normalizedSearch = debouncedSearch.trim().toLowerCase();
 
-    if (search) {
-      result = result.filter(
-        (t) =>
-          t.title.includes(search) ||
-          t.description.includes(search)
-      );
-    }
+    if (normalizedSearch) {
+      result = result.filter((task) => {
+        const projectName = projects.find((project) => project.id === task.projectId)?.name ?? '';
+        const assigneeName = users.find((user) => user.id === task.assigneeId)?.name ?? '';
+        const searchableText = [
+          task.title,
+          task.description,
+          task.priority,
+          task.status,
+          task.dueDate,
+          projectName,
+          assigneeName,
+          ...task.labels,
+        ]
+          .join(' ')
+          .toLowerCase();
 
-    if (statusFilter !== 'all' || priorityFilter !== 'all') {
-      result = result.filter((t) => {
-        const statusMatch = statusFilter === 'all' || t.status === statusFilter;
-        const priorityMatch = priorityFilter === 'all' || t.priority === priorityFilter;
-        return statusMatch || priorityMatch;
+        return searchableText.includes(normalizedSearch);
       });
     }
 
+    result = result.filter((task) => {
+      const statusMatch = statusFilter === 'all' || task.status === statusFilter;
+      const priorityMatch = priorityFilter === 'all' || task.priority === priorityFilter;
+      return statusMatch && priorityMatch;
+    });
+
     return result;
-  }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
+  }, [tasks, debouncedSearch, statusFilter, priorityFilter, projects, users]);
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    const list = sortedRef.current.length > 0 && statusFilter === 'all' ? sortedRef.current : [...filtered];
-    list.sort((a, b) => {
+
+    return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'title': return a.title.localeCompare(b.title);
         case 'dueDate': return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
@@ -66,9 +108,7 @@ export function TasksPage() {
         default: return 0;
       }
     });
-    sortedRef.current = list;
-    return list;
-  }, [filtered, sortBy, statusFilter]);
+  }, [filtered, sortBy]);
 
   const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(
     sorted,
@@ -77,8 +117,6 @@ export function TasksPage() {
 
   const handlePageChange = (page: number) => {
     goToPage(page);
-    setStatusFilter('all');
-    setPriorityFilter('all');
   };
 
   const handleCreate = async (data: TaskFormData) => {
@@ -114,6 +152,42 @@ export function TasksPage() {
     setModalOpen(false);
     setEditingTask(null);
   };
+
+  function generateCsv(taskList: typeof sorted): string {
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+    const projectMap = new Map(projects.map((p) => [p.id, p.name]));
+
+    const escape = (value: string) => {
+      if (/[,"\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+      return value;
+    };
+
+    const header = ['Title', 'Status', 'Priority', 'Assignee', 'Project', 'Due Date', 'Labels', 'Created Date'];
+    const rows = taskList.map((task) => [
+      escape(task.title),
+      escape(capitalize(task.status)),
+      escape(capitalize(task.priority)),
+      escape(userMap.get(task.assigneeId) ?? ''),
+      escape(projectMap.get(task.projectId) ?? ''),
+      escape(formatDate(task.dueDate)),
+      escape(task.labels.join(', ')),
+      escape(formatDate(task.createdAt)),
+    ]);
+
+    return '\uFEFF' + [header, ...rows].map((row) => row.join(',')).join('\n');
+  }
+
+  function downloadCsv() {
+    const csv = generateCsv(sorted);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `flowpilot-tasks-${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const columns = [
     {
@@ -221,24 +295,42 @@ export function TasksPage() {
               { value: 'status', label: 'Status' },
             ]}
           />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadCsv}
+            disabled={sorted.length === 0}
+            title={sorted.length === 0 ? 'No tasks to export' : undefined}
+            className="shadow-brutal-sm py-2.5"
+          >
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
         </div>
       </div>
 
-      {paginatedItems.length === 0 ? (
+      {sorted.length === 0 ? (
         <EmptyState
           icon={<CheckSquare className="h-8 w-8" />}
-          title="No taks found"
+          title="No tasks found"
           description="Try adjusting your filters or create a new task to get started."
           action={<Button onClick={() => setModalOpen(true)}><Plus className="h-4 w-4" /> Create Task</Button>}
         />
       ) : (
         <>
-          <DataTable
-            columns={columns}
-            data={paginatedItems}
-            onRowClick={(task) => { setEditingTask(task); setModalOpen(true); }}
-          />
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+          {paginatedItems.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground bg-slate-50/50 rounded-xl border border-dashed">
+              No tasks found on this page.
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={paginatedItems}
+              onRowClick={(task) => { setEditingTask(task); setModalOpen(true); }}
+            />
+          )}
+          {totalPages > 1 && (
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+          )}
         </>
       )}
 

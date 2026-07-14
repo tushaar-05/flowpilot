@@ -37,7 +37,7 @@ const features = [
     icon: Bell,
     title: 'Smart Notifications',
     description: 'Get pinged on what matters — assignments, reviews, and deadlines — not every comment.',
-    color: 'bg-accent/20',
+    color: 'bg-white',
   },
 ];
 
@@ -54,7 +54,7 @@ export function FeaturesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {features.map((f, i) => (
             <motion.div
               key={f.title}

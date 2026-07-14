@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
@@ -31,6 +31,28 @@ export function SettingsPage() {
 
   const handleSave = () => {
     updateSettings(localSettings);
+  };
+
+  const handleSaveSecurityQuestions = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) return;
+
+    if (!placeOfBirth.trim() || !petName.trim() || !favPlace.trim()) {
+      addToast('error', 'All security questions must be filled out.');
+      return;
+    }
+
+    const success = await updateSecurityQuestions(user.email, {
+      placeOfBirth: placeOfBirth.trim(),
+      petName: petName.trim(),
+      favPlace: favPlace.trim(),
+    });
+
+    if (success) {
+      addToast('success', 'Security questions updated successfully.');
+    } else {
+      addToast('error', 'Failed to update security questions.');
+    }
   };
 
   return (
@@ -151,7 +173,7 @@ export function SettingsPage() {
               ].map((item) => (
                 <div key={item.key} className="flex items-center justify-between py-2">
                   <div>
-                    <p className="text-sm font-medium">{item.label}</p>
+                    <p className="text-sm font-medium text-ink">{item.label}</p>
                     <p className="text-xs text-muted">{item.desc}</p>
                   </div>
                   <button
@@ -190,9 +212,51 @@ export function SettingsPage() {
                   max={120}
                 />
               </div>
-              <Button variant="outline" 
-                onClick={() => setPasswordModalOpen(true)} //opens change password modal when clicked
-                >Change Password</Button>
+              <div>
+                <Button variant="outline" onClick={() => setPasswordModalOpen(true)}>
+                  Change Password
+                </Button>
+              </div>
+
+              <div className="border-t-2 border-dashed border-ink/20 pt-5 mt-5 space-y-4">
+                <div>
+                  <h3 className="text-base font-bold text-ink">Security Questions</h3>
+                  <p className="text-xs text-muted">Configure security questions used to recover your account if you forget your password.</p>
+                </div>
+                <form onSubmit={handleSaveSecurityQuestions} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">1. Place of birth</label>
+                    <input
+                      type="text"
+                      value={placeOfBirth}
+                      onChange={(e) => setPlaceOfBirth(e.target.value)}
+                      placeholder="e.g. New Delhi"
+                      className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">2. Pet name</label>
+                    <input
+                      type="text"
+                      value={petName}
+                      onChange={(e) => setPetName(e.target.value)}
+                      placeholder="e.g. Buddy"
+                      className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">3. Favorite place to visit</label>
+                    <input
+                      type="text"
+                      value={favPlace}
+                      onChange={(e) => setFavPlace(e.target.value)}
+                      placeholder="e.g. Paris"
+                      className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                  <Button type="submit">Update Security Questions</Button>
+                </form>
+              </div>
             </div>
           )}
 
@@ -232,9 +296,9 @@ export function SettingsPage() {
           </div>
         </Tabs>
       </Card>
-      <ChangePasswordModal //creating component
-      open={passwordModalOpen}
-      onClose={() => setPasswordModalOpen(false)}
+      <ChangePasswordModal
+        open={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
       />
     </div>
   );
