@@ -126,10 +126,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const storedNotifs = getFromStorage<Notification[] | null>(STORAGE_KEYS.NOTIFICATIONS, null);
       const storedDeleted = getFromStorage<DeletedItem[] | null>(STORAGE_KEYS.DELETED_ITEMS, null);
       const storedNotices = getFromStorage<Notice[] | null>(STORAGE_KEYS.NOTICES, null);
+      const storedUsers = getFromStorage<User[] | null>('flowpilot_app_users', null);
 
       setProjects(storedProjects ?? projectsData);
       setTasks(storedTasks ?? tasksData);
-      setUsers(usersData);
+      setUsers(storedUsers ?? usersData);
       setCurrentUser(user);
       setNotifications(storedNotifs ?? notifs);
       setNotices(storedNotices ?? noticesMockData);
@@ -155,19 +156,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (found) {
         setCurrentUser(found);
       } else {
-        setCurrentUser({
+        const newUser: User = {
           id: authUser.email,
           name: authUser.name,
           email: authUser.email,
-          role: 'member',
+          role: 'admin',
           avatar: authUser.avatar,
-          department: 'General',
+          department: 'Engineering',
           phone: '',
-          bio: '',
+          bio: 'Registered user.',
           skills: [],
           joinedAt: authUser.createdAt || new Date().toISOString(),
-          projectIds: [],
+          projectIds: ['proj-1', 'proj-2'],
+        };
+        setUsers((prev) => {
+          if (prev.some((u) => u.email.toLowerCase() === authUser.email.toLowerCase())) {
+            return prev;
+          }
+          return [...prev, newUser];
         });
+        setCurrentUser(newUser);
       }
 
       // Load user-specific profile
@@ -191,28 +199,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [authUser, users, loading]);
 
   useEffect(() => {
-    if (!loading && projects.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.PROJECTS, projects);
     }
   }, [projects, loading]);
 
   useEffect(() => {
-    if (!loading && tasks.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.TASKS, tasks);
     }
   }, [tasks, loading]);
 
   useEffect(() => {
-    if (!loading && deletedItems.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.DELETED_ITEMS, deletedItems);
     }
   }, [deletedItems, loading]);
 
   useEffect(() => {
-    if (!loading && notices.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.NOTICES, notices);
     }
   }, [notices, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage('flowpilot_app_users', users);
+    }
+  }, [users, loading]);
 
   useEffect(() => {
     setToStorage(STORAGE_KEYS.SETTINGS, settings);
