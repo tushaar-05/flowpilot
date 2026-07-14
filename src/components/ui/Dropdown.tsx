@@ -29,9 +29,9 @@ export function Dropdown({ trigger, items, align = 'left' }: DropdownProps) {
 
   return (
     <div ref={ref} className="relative inline-flex">
-      <button onClick={() => setOpen(!open)} className="inline-flex items-center">
+      <div onClick={() => setOpen(!open)} className="inline-flex items-center cursor-pointer">
         {trigger}
-      </button>
+      </div>
       {open && (
         <div
           className={cn(

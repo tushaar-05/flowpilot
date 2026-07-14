@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Plus, FolderKanban } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -15,7 +15,11 @@ import { PROJECT_STATUS_OPTIONS, PROJECT_PRIORITY_OPTIONS } from '@/constants';
 type SortField = 'name' | 'progress' | 'priority' | 'updatedAt';
 
 export function ProjectsPage() {
-  const { projects, createProject, updateProject, deleteProject } = useApp();
+  const { projects, createProject, updateProject, deleteProject, checkProjectDeadlines } = useApp();
+  
+  useEffect(() => {
+    checkProjectDeadlines();
+  }, [checkProjectDeadlines]);
   const [search, setSearch] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
 

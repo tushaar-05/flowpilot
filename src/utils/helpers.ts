@@ -25,6 +25,40 @@ if (isTomorrow(parsed)) return { label: 'Tomorrow', className: 'text-blue-600' }
   return { label: formatDate(date), className: 'text-muted' };
 }
 
+export function getProjectDeadlineBadge(
+  endDateStr: string,
+  status: string
+): { label: string; color: 'blue' | 'orange' | 'yellow' | 'emerald' | 'pink' | 'purple'; icon: string } | null {
+  if (status === 'completed' || status === 'archived') {
+    return null;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endDate = parseISO(endDateStr);
+  endDate.setHours(0, 0, 0, 0);
+
+  const diffTime = endDate.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return { label: 'Overdue', color: 'pink', icon: '🔴' };
+  }
+  if (diffDays === 0) {
+    return { label: 'Due Today', color: 'pink', icon: '🔴' };
+  }
+  if (diffDays === 1) {
+    return { label: 'Due Tomorrow', color: 'orange', icon: '🟠' };
+  }
+  if (diffDays === 2 || diffDays === 3) {
+    return { label: 'Due Soon', color: 'orange', icon: '🟠' };
+  }
+
+  return null;
+}
+
+
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }

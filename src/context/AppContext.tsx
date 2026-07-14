@@ -21,7 +21,7 @@ import type {
 } from '@/types';
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from '@/constants';
 import { getFromStorage, setToStorage, removeFromStorage } from '@/utils/storage';
-import { generateId } from '@/utils/helpers';
+import { generateId, formatDate } from '@/utils/helpers';
 import { fetchProjects, createProjectApi, updateProjectApi, deleteProjectApi } from '@/services/projectService';
 import { fetchTasks, createTaskApi, updateTaskApi, deleteTaskApi } from '@/services/taskService';
 import { fetchUsers, fetchCurrentUser } from '@/services/userService';
@@ -70,6 +70,7 @@ interface AppContextValue {
   uploadFile: (file: Omit<FileItem, 'id' | 'uploadedAt'>) => void;
   deleteFile: (id: string) => void;
   refreshData: () => Promise<void>;
+  checkProjectDeadlines: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -258,7 +259,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-      setToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications.filter((n) => n.read));
+      setToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
     }
   }, [notifications, loading]);
 
@@ -481,6 +482,82 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addToast('success', 'File deleted');
   };
 
+  const checkProjectDeadlines = useCallback(() => {
+    if (loading || projects.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const newNotifications: Notification[] = [];
+    let updated = false;
+
+    projects.forEach((project) => {
+      if (project.status === 'completed' || project.status === 'archived') {
+        return;
+      }
+
+      const endDate = new Date(project.endDate);
+      endDate.setHours(0, 0, 0, 0);
+
+      const diffTime = endDate.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      let reminderPeriod: 'soon' | 'tomorrow' | 'today' | 'overdue' | null = null;
+      let message = '';
+
+      const formattedDate = formatDate(project.endDate, 'MMMM d, yyyy');
+
+      if (diffDays < 0) {
+        reminderPeriod = 'overdue';
+        message = `${project.name} is overdue since ${formattedDate}. Please review any remaining tasks.`;
+      } else if (diffDays === 0) {
+        reminderPeriod = 'today';
+        message = `${project.name} is due today (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      } else if (diffDays === 1) {
+        reminderPeriod = 'tomorrow';
+        message = `${project.name} is due tomorrow (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      } else if (diffDays === 2 || diffDays === 3) {
+        reminderPeriod = 'soon';
+        message = `${project.name} is due in ${diffDays} days (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      }
+
+      if (reminderPeriod) {
+        const alreadyExists = [...notifications, ...newNotifications].some((n) => {
+          if (n.category !== 'project' || n.link !== `/projects/${project.id}`) {
+            return false;
+          }
+          if (reminderPeriod === 'overdue') return n.message.includes('overdue');
+          if (reminderPeriod === 'today') return n.message.includes('due today');
+          if (reminderPeriod === 'tomorrow') return n.message.includes('due tomorrow') || n.message.includes('due in 1 day');
+          if (reminderPeriod === 'soon') return n.message.includes('due in 3 days') || n.message.includes('due in 2 days') || n.message.includes('due soon');
+          return false;
+        });
+
+        if (!alreadyExists) {
+          const newNotif: Notification = {
+            id: generateId(),
+            title: 'Project Deadline Reminder',
+            message: message,
+            category: 'project',
+            read: false,
+            createdAt: new Date().toISOString(),
+            link: `/projects/${project.id}`,
+          };
+          newNotifications.push(newNotif);
+          updated = true;
+        }
+      }
+    });
+
+    if (updated) {
+      setNotifications((prev) => {
+        const nextNotifs = [...newNotifications, ...prev];
+        setToStorage(STORAGE_KEYS.NOTIFICATIONS, nextNotifs);
+        return nextNotifs;
+      });
+    }
+  }, [loading, projects, notifications]);
+
   const createNotice = async (data: Omit<Notice, 'id' | 'createdAt' | 'authorId' | 'authorName' | 'authorAvatar'>) => {
     if (!currentUser) return;
     const now = new Date().toISOString();
@@ -563,6 +640,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadFile,
         deleteFile,
         refreshData: loadData,
+        checkProjectDeadlines,
       }}
     >
       {children}
