@@ -1,0 +1,38 @@
+export const blogPosts = [
+  {
+    id: 'soft-brutalist-design',
+    title: 'Mastering the Soft-Brutalist Design Aesthetics in SaaS Apps',
+    desc: 'Explore the fusion of neo-brutalism and user-friendly UX. Why heavy borders, pastel backgrounds, and custom borders are taking over modern product interfaces.',
+    category: 'Design',
+    date: 'July 14, 2026',
+    author: 'Elena Rostova',
+    color: 'yellow' as const,
+  },
+  {
+    id: 'kanban-over-scrum',
+    title: 'Why We Ditched Legacy Scrum for Lightweight Kanban Boards',
+    desc: 'How switching from heavy bi-weekly sprints to single-flow Kanban boards boosted our sprint completion velocity by over 24% and improved team morale.',
+    category: 'Productivity',
+    date: 'July 8, 2026',
+    author: 'Sarah Chen',
+    color: 'blue' as const,
+  },
+  {
+    id: 'dark-mode-contrast',
+    title: 'Designing Accessible Color Variables in Dark Mode Systems',
+    desc: 'A technical guide on building readable dark themes without breaking WCAG AA ratios. Choosing slate grays, avoiding hard pitch-black, and maintaining glowing highlights.',
+    category: 'Development',
+    date: 'June 29, 2026',
+    author: 'Marcus Vance',
+    color: 'emerald' as const,
+  },
+  {
+    id: 'remote-engineering-habits',
+    title: '5 Collaboration Habits of Elite Async Engineering Teams',
+    desc: 'Secrets from remote-first organizations. How written specifications, daily asynchronous activity logs, and single-source project tools prevent Zoom fatigue.',
+    category: 'Remote Work',
+    date: 'June 18, 2026',
+    author: 'Sarah Chen',
+    color: 'pink' as const,
+  },
+];

@@ -12,58 +12,45 @@
   --color-purple: #8b5cf6;
   --color-success: #10b981;
   --color-danger: #ef4444;
-  --color-background: #fffdf7;
-  --color-surface: #ffffff;
-  --color-ink: #111827;
-  --color-border: #111827;
-  --color-muted: #64748b;
-  --color-foreground: #1e293b;
-  --color-project-col-bg: #fef9e3;
+  --color-background: var(--bg-color);
+  --color-surface: var(--surface-color);
+  --color-ink: var(--ink-color);
+  --color-border: var(--border-color);
+  --color-muted: var(--muted-color);
+  --color-foreground: var(--foreground-color);
   --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-color: #fffdf7;
+  --surface-color: #ffffff;
+  --ink-color: #111827;
+  --border-color: #111827;
+  --muted-color: #64748b;
+  --foreground-color: #1e293b;
+  --shadow-color: #111827;
+}
+
 .dark {
-  --color-background: #0d0d10;
-  --color-surface: #1a1a1f;
-  --color-foreground: #f4f4f5;
-  --color-ink: #ffffff;
-  --color-border: #ffffff;
-  --color-muted: #a1a1aa;
-  --color-project-col-bg: #1c1a12;
-}
+  --bg-color: #0f172a;
+  --surface-color: #1e293b;
+  --ink-color: #f8fafc;
+  --border-color: #334155;
+  --muted-color: #94a3b8;
+  --foreground-color: #f1f5f9;
+  --shadow-color: rgba(255, 255, 255, 0.04);
 
-/* Adapt common hover utilities and options inside dark mode */
-.dark .hover\:bg-slate-50:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.dark .hover\:bg-slate-100:hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.dark .hover\:bg-background:hover {
-  background-color: var(--color-background) !important;
-}
-
-.dark .bg-slate-50 {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.dark .bg-slate-100 {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.dark .bg-slate-50\/80 {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-}
-
-.dark .bg-slate-50\/50 {
-  background-color: rgba(255, 255, 255, 0.03) !important;
-}
-
-.dark select option {
-  background-color: var(--color-surface);
-  color: var(--color-ink);
+  /* Overrides for standard Slate palette colors in dark mode to ensure readability */
+  --color-slate-50: #1e293b;
+  --color-slate-100: #334155;
+  --color-slate-200: #475569;
+  --color-slate-300: #64748b;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #cbd5e1;
+  --color-slate-600: #e2e8f0;
+  --color-slate-700: #f1f5f9;
 }
 
 @layer base {
@@ -82,24 +69,44 @@
   h1, h2, h3, h4 {
     @apply font-bold tracking-tight text-ink;
   }
+
+  /* Target transitions specifically to key design elements, preventing layout shifts */
+  body, 
+  aside, 
+  header, 
+  footer, 
+  main,
+  button, 
+  input, 
+  textarea, 
+  select, 
+  a,
+  span,
+  h1, h2, h3, h4, h5, h6,
+  p,
+  svg {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
 }
 
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #11182740 transparent;
+    scrollbar-color: var(--border-color) transparent;
   }
 
   .shadow-brutal {
-    box-shadow: 4px 4px 0 0 var(--color-border);
+    box-shadow: 4px 4px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-sm {
-    box-shadow: 2px 2px 0 0 var(--color-border);
+    box-shadow: 2px 2px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-lg {
-    box-shadow: 6px 6px 0 0 var(--color-border);
+    box-shadow: 6px 6px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-hover {
@@ -108,19 +115,20 @@
 
   .shadow-brutal-hover:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--color-border);
+    box-shadow: 6px 6px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-active:active {
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 0 var(--color-border);
+    box-shadow: 2px 2px 0 0 var(--shadow-color);
   }
 
   .border-brutal {
-    border: 2.5px solid var(--color-border);
+    border: 2.5px solid var(--border-color);
   }
 
   .text-ink {
-    color: var(--color-ink);
+    color: var(--ink-color);
   }
 }
+

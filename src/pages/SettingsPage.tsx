@@ -4,10 +4,11 @@ import { Card } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/context/AppContext';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/ToastContext';
+import { useTheme } from '@/context/ThemeContext';
+import { cn } from '@/utils/cn';
 import type { AppSettings } from '@/types';
 import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
+
 
 const settingsTabs = [
   { id: 'general', label: 'General' },
@@ -19,24 +20,10 @@ const settingsTabs = [
 
 export function SettingsPage() {
   const { settings, updateSettings } = useApp();
-  const { user, updateSecurityQuestions } = useAuth();
-  const { addToast } = useToast();
-
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-
-  const [placeOfBirth, setPlaceOfBirth] = useState('');
-  const [petName, setPetName] = useState('');
-  const [favPlace, setFavPlace] = useState('');
-
-  useEffect(() => {
-    if (user?.securityQuestions) {
-      setPlaceOfBirth(user.securityQuestions.placeOfBirth);
-      setPetName(user.securityQuestions.petName);
-      setFavPlace(user.securityQuestions.favPlace);
-    }
-  }, [user]);
 
   const handleChange = (key: keyof AppSettings, value: string | number | boolean) => {
     setLocalSettings((prev) => ({ ...prev, [key]: value }));
@@ -147,19 +134,38 @@ export function SettingsPage() {
           )}
 
           {activeTab === 'appearance' && (
-            <div className="space-y-5 max-w-lg">
-              <div className="pb-4 border-b border-border">
-                <label className="block text-sm font-bold mb-1.5 text-ink">Theme</label>
-                <select
-                  value={localSettings.theme || 'light'}
-                  onChange={(e) => handleChange('theme', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="system">System Preference</option>
-                </select>
+            <div className="space-y-4 max-w-lg">
+              <div className="flex items-center justify-between py-3 border-b border-border/10 pb-4 mb-2">
+                <div>
+                  <p className="text-sm font-bold text-ink">Theme Mode</p>
+                  <p className="text-xs text-muted">Choose your application UI theme</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTheme('light')}
+                    className={cn(
+                      'px-4 py-2 text-xs font-bold rounded-xl border-2 transition-all cursor-pointer',
+                      theme === 'light'
+                        ? 'bg-yellow/30 border-ink text-ink shadow-brutal-sm'
+                        : 'border-border/50 text-muted hover:text-ink hover:border-ink'
+                    )}
+                  >
+                    Light
+                  </button>
+                  <button
+                    onClick={() => setTheme('dark')}
+                    className={cn(
+                      'px-4 py-2 text-xs font-bold rounded-xl border-2 transition-all cursor-pointer',
+                      theme === 'dark'
+                        ? 'bg-yellow/30 border-ink text-ink shadow-brutal-sm'
+                        : 'border-border/50 text-muted hover:text-ink hover:border-ink'
+                    )}
+                  >
+                    Dark
+                  </button>
+                </div>
               </div>
+
               {[
                 { key: 'compactMode' as const, label: 'Compact Mode', desc: 'Reduce spacing for denser layouts' },
                 { key: 'showAvatars' as const, label: 'Show Avatars', desc: 'Display user avatars throughout the app' },

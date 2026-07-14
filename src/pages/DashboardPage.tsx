@@ -240,9 +240,9 @@ export function DashboardPage() {
                   <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" tick={{ fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 16, border: '2px solid #111827', fontWeight: 700 }} />
+              <XAxis dataKey="day" tick={{ fontSize: 12, fontWeight: 700, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 16, border: '2px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-ink)', fontWeight: 700 }} />
               <Area type="monotone" dataKey="done" stroke="#3B82F6" strokeWidth={3} fill="url(#colorDone)" />
               <Area type="monotone" dataKey="total" stroke="#F97316" strokeWidth={2} strokeDasharray="6 4" fill="none" />
             </AreaChart>

@@ -4,7 +4,7 @@ import { ROUTES } from '@/constants';
 
 export function LandingFooter() {
   return (
-    <footer className="border-t-2 border-ink bg-white py-12 px-6">
+    <footer className="border-t-2 border-ink bg-surface py-12 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col md:flex-row justify-between gap-8">
           <div>

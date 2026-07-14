@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Menu, Search, Plus, Bell, Sun, Moon } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApp } from '@/context/AppContext';
 import { ROUTES } from '@/constants';
 import { GlobalSearch } from './GlobalSearch';
@@ -29,19 +30,14 @@ export function Navbar() {
         <div className="hidden sm:block flex-1 max-w-md">
           <GlobalSearch />  </div>
       </div>
-<div className="flex items-center gap-2 sm:gap-3">
-  <Link to={`${ROUTES.TASKS}?newTask=true`} className="hidden sm:block">
-   <Button size="sm" variant="dark" className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:scale-105"> 
-      <Plus className="h-4 w-4" /> New Task
-    </Button>
-  </Link>
-        <button
-          onClick={toggleTheme}
-          aria-label="Toggle Theme"
-          className="rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm text-ink bg-surface"
-        >
-          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
+
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Link to={ROUTES.TASKS} className="hidden sm:block">
+          <Button size="sm" variant="dark">
+            <Plus className="h-4 w-4" /> New Task
+          </Button>
+        </Link>
+        <ThemeToggle />
         <Link
           to={ROUTES.NOTIFICATIONS}
           className="relative rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm bg-surface"
