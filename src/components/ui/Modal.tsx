@@ -42,7 +42,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={cn(
-              'relative w-full rounded-3xl border-2 border-ink bg-white shadow-brutal-lg',
+              'relative w-full rounded-3xl border-2 border-ink bg-surface shadow-brutal-lg',
               sizeMap[size]
             )}
           >

@@ -4,8 +4,10 @@ import { Card } from '@/components/ui/Card';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/context/AppContext';
+import { useTheme } from '@/context/ThemeContext';
+import { cn } from '@/utils/cn';
 import type { AppSettings } from '@/types';
-import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';// import the schema for changing password
+import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
 
 
 const settingsTabs = [
@@ -18,9 +20,10 @@ const settingsTabs = [
 
 export function SettingsPage() {
   const { settings, updateSettings } = useApp();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('general');
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false); // State to control the visibility of the Change Password modal
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   const handleChange = (key: keyof AppSettings, value: string | number | boolean) => {
     setLocalSettings((prev) => ({ ...prev, [key]: value }));
@@ -110,6 +113,37 @@ export function SettingsPage() {
 
           {activeTab === 'appearance' && (
             <div className="space-y-4 max-w-lg">
+              <div className="flex items-center justify-between py-3 border-b border-border/10 pb-4 mb-2">
+                <div>
+                  <p className="text-sm font-bold text-ink">Theme Mode</p>
+                  <p className="text-xs text-muted">Choose your application UI theme</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTheme('light')}
+                    className={cn(
+                      'px-4 py-2 text-xs font-bold rounded-xl border-2 transition-all cursor-pointer',
+                      theme === 'light'
+                        ? 'bg-yellow/30 border-ink text-ink shadow-brutal-sm'
+                        : 'border-border/50 text-muted hover:text-ink hover:border-ink'
+                    )}
+                  >
+                    Light
+                  </button>
+                  <button
+                    onClick={() => setTheme('dark')}
+                    className={cn(
+                      'px-4 py-2 text-xs font-bold rounded-xl border-2 transition-all cursor-pointer',
+                      theme === 'dark'
+                        ? 'bg-yellow/30 border-ink text-ink shadow-brutal-sm'
+                        : 'border-border/50 text-muted hover:text-ink hover:border-ink'
+                    )}
+                  >
+                    Dark
+                  </button>
+                </div>
+              </div>
+
               {[
                 { key: 'compactMode' as const, label: 'Compact Mode', desc: 'Reduce spacing for denser layouts' },
                 { key: 'showAvatars' as const, label: 'Show Avatars', desc: 'Display user avatars throughout the app' },

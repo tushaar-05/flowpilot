@@ -3,6 +3,7 @@ import { Menu, Search, Plus, Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/constants';
@@ -38,6 +39,7 @@ export function Navbar() {
             <Plus className="h-4 w-4" /> New Task
           </Button>
         </Link>
+        <ThemeToggle />
         <Link
           to={ROUTES.NOTIFICATIONS}
           className="relative rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm"

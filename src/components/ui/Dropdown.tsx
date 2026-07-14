@@ -35,7 +35,7 @@ export function Dropdown({ trigger, items, align = 'left' }: DropdownProps) {
       {open && (
         <div
           className={cn(
-            'absolute top-full z-20 mt-1 min-w-[160px] rounded-lg border border-border bg-white py-1 shadow-lg',
+            'absolute top-full z-20 mt-1 min-w-[160px] rounded-lg border border-border bg-surface py-1 shadow-lg',
             align === 'right' ? 'right-0' : 'left-0'
           )}
         >
@@ -63,7 +63,7 @@ export function Dropdown({ trigger, items, align = 'left' }: DropdownProps) {
 
 export function DropdownButton({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+    <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm hover:bg-slate-50">
       {label}
       <ChevronDown className="h-4 w-4 text-muted" />
     </span>
