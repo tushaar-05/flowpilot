@@ -36,7 +36,7 @@ function KanbanCard({ task, users }: { task: Task; users: ReturnType<typeof useA
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border border-border bg-white p-3 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
+      className="rounded-lg border border-border bg-surface p-3 shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
       {...attributes}
       {...listeners}
     >

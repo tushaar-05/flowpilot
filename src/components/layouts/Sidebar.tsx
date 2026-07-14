@@ -41,7 +41,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-30 flex h-full flex-col border-r-2 border-ink bg-white transition-all duration-300',
+        'fixed left-0 top-0 z-30 flex h-full flex-col border-r-2 border-ink bg-surface transition-all duration-300',
         sidebarOpen ? 'w-64' : 'w-[76px]',
         'max-md:shadow-brutal-lg',
         !sidebarOpen && 'max-md:-translate-x-full max-md:w-64'
@@ -102,7 +102,7 @@ export function Sidebar() {
         </NavLink>
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-muted hover:text-danger hover:bg-red-50 border-2 border-transparent transition-all"
+          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-muted hover:text-danger hover:bg-danger/10 border-2 border-transparent transition-all"
         >
           <LogOut className="h-5 w-5 shrink-0" />
           {sidebarOpen && <span>Log out</span>}

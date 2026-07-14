@@ -22,7 +22,7 @@ export function Badge({ children, className, variant = 'default', color = 'blue'
     <span
       className={cn(
         'inline-flex items-center rounded-full border-2 border-ink px-3 py-0.5 text-xs font-bold uppercase tracking-wide',
-        variant === 'outline' && 'bg-white',
+        variant === 'outline' && 'bg-surface',
         variant === 'solid' && colorMap[color],
         variant === 'default' && colorMap[color],
         className

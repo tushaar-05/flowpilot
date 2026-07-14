@@ -58,6 +58,8 @@ interface AppContextValue {
   uploadFile: (file: Omit<FileItem, 'id' | 'uploadedAt'>) => void;
   deleteFile: (id: string) => void;
   refreshData: () => Promise<void>;
+  searchOpen: boolean;
+  setSearchOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -91,6 +93,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [deletedStack, setDeletedStack] = useState<DeletedItem[]>([]);
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
@@ -342,6 +345,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadFile,
         deleteFile,
         refreshData: loadData,
+        searchOpen,
+        setSearchOpen,
       }}
     >
       {children}

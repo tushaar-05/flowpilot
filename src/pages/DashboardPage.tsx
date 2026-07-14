@@ -75,13 +75,13 @@ export function DashboardPage() {
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-muted mb-2">
+            <p className="text-sm font-bold uppercase tracking-widest text-muted dark:text-ink/80 mb-2">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-ink leading-tight">
               {greeting}, {user?.name?.split(' ')[0] ?? 'there'} 👋
             </h1>
-            <p className="mt-3 text-lg text-muted max-w-xl">
+            <p className="mt-3 text-lg text-muted dark:text-ink/90 max-w-xl">
               You have <strong className="text-ink">{openTasks} open tasks</strong> across{' '}
               <strong className="text-ink">{activeProjects.length} active projects</strong>. Let&apos;s make today count.
             </p>
@@ -171,7 +171,7 @@ export function DashboardPage() {
                   <span>Progress</span>
                   <span className="text-primary">{topProject.progress}%</span>
                 </div>
-                <div className="h-4 rounded-full border-2 border-ink bg-white overflow-hidden">
+                <div className="h-4 rounded-full border-2 border-ink bg-background overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${topProject.progress}%` }}
@@ -231,7 +231,7 @@ export function DashboardPage() {
             {urgentDeadlines.map((task) => {
               const due = getDueDateLabel(task.dueDate);
               return (
-                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-ink bg-white shadow-brutal-sm">
+                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-ink bg-surface shadow-brutal-sm">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-ink bg-accent/20">
                     <Clock className="h-5 w-5 text-accent" />
                   </div>

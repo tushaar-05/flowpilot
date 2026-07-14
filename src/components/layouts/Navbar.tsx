@@ -7,13 +7,12 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/constants';
-import { useState } from 'react';
 
 export function Navbar() {
-  const { sidebarOpen, setSidebarOpen, notifications } = useApp();
+  const { sidebarOpen, setSidebarOpen, notifications, setSearchOpen } = useApp();
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
   const unread = notifications.filter((n) => !n.read).length;
+  const isMac = typeof window !== 'undefined' && window.navigator.userAgent.indexOf('Mac') !== -1;
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b-2 border-ink bg-background/95 backdrop-blur-md px-4 sm:px-6">
@@ -24,12 +23,20 @@ export function Navbar() {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="hidden sm:block flex-1 max-w-md">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search anything..."
-          />
+        <div
+          onClick={() => setSearchOpen(true)}
+          className="hidden sm:block flex-1 max-w-md cursor-pointer select-none"
+        >
+          <div className="relative pointer-events-none">
+            <SearchBar
+              value=""
+              onChange={() => {}}
+              placeholder="Search anything..."
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-lg border-2 border-ink bg-surface px-1.5 py-0.5 text-[10px] font-black text-muted shadow-brutal-sm">
+              {isMac ? '⌘K' : 'Ctrl+K'}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -51,12 +58,16 @@ export function Navbar() {
             </span>
           )}
         </Link>
-        <button className="rounded-xl border-2 border-ink p-2.5 sm:hidden shadow-brutal-sm">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="rounded-xl border-2 border-ink p-2.5 sm:hidden shadow-brutal-sm hover:bg-yellow/30 transition-colors"
+          aria-label="Open search command palette"
+        >
           <Search className="h-5 w-5" />
         </button>
         <Link
           to={ROUTES.PROFILE}
-          className="flex items-center gap-2.5 rounded-2xl border-2 border-ink bg-white pl-1.5 pr-3 py-1.5 hover:shadow-brutal-sm transition-all"
+          className="flex items-center gap-2.5 rounded-2xl border-2 border-ink bg-surface pl-1.5 pr-3 py-1.5 hover:shadow-brutal-sm transition-all"
         >
           <Avatar src={user?.avatar} name={user?.name ?? 'User'} size="sm" />
           <span className="hidden lg:block text-sm font-extrabold max-w-[120px] truncate">{user?.name}</span>
