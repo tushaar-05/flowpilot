@@ -143,8 +143,8 @@ export interface Toast {
 }
 
 export interface DeletedItem {
-  type: 'task' | 'project';
-  item: Task | Project;
+  type: 'task' | 'project' | 'file' | 'notification';
+  item: Task | Project | FileItem | Notification;
   deletedAt: number;
 }
 

@@ -29,6 +29,7 @@ import { TeamPage } from '@/pages/TeamPage';
 import { ActivityPage } from '@/pages/ActivityPage';
 import { FilesPage } from '@/pages/FilesPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
+import { TrashPage } from '@/pages/TrashPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { SettingsPage } from '@/pages/SettingsPage';
@@ -73,6 +74,7 @@ export default function App() {
                   <Route path={ROUTES.ACTIVITY} element={<ActivityPage />} />
                   <Route path={ROUTES.FILES} element={<FilesPage />} />
                   <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
+                  <Route path={ROUTES.TRASH} element={<TrashPage />} />
                   <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
                   <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
                   <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />

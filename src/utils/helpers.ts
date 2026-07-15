@@ -5,8 +5,8 @@ export function formatDate(date: string, dateFormat = 'MMM d, yyyy'): string {
   return format(parseISO(date), dateFormat);
 }
 
-export function formatRelative(date: string): string {
-  return formatDistanceToNow(parseISO(date), { addSuffix: true });
+export function formatRelative(date: string | number): string {
+  return formatDistanceToNow(typeof date === 'number' ? date : parseISO(date), { addSuffix: true });
 }
 
 export function formatFileSize(bytes: number): string {

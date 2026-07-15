@@ -11,6 +11,7 @@ import {
   FileText,
   Bell,
   BarChart3,
+  Trash2,
   Settings,
   ChevronLeft,
   Zap,
@@ -32,6 +33,7 @@ const navItems = [
   { to: ROUTES.ACTIVITY, label: 'Activity', icon: Activity },
   { to: ROUTES.FILES, label: 'Files', icon: FileText },
   { to: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
+  { to: ROUTES.TRASH, label: 'Trash', icon: Trash2 },
   { to: ROUTES.ANALYTICS, label: 'Analytics', icon: BarChart3 },
 ];
 
