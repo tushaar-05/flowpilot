@@ -27,6 +27,9 @@ export function RegisterPage() {
       name: data.name,
       email: data.email,
       password: data.password,
+      placeOfBirth: data.placeOfBirth,
+      petName: data.petName,
+      favPlace: data.favPlace,
     });
     setLoading(false);
 
@@ -73,6 +76,30 @@ export function RegisterPage() {
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
+
+        <div className="border-t-2 border-dashed border-ink/20 pt-4">
+          <p className="text-sm font-bold text-ink mb-3">Security Questions (For Password Reset)</p>
+          <div className="space-y-4">
+            <Input
+              label="Place of birth"
+              placeholder="e.g. New Delhi"
+              error={errors.placeOfBirth?.message}
+              {...register('placeOfBirth')}
+            />
+            <Input
+              label="Pet name"
+              placeholder="e.g. Buddy"
+              error={errors.petName?.message}
+              {...register('petName')}
+            />
+            <Input
+              label="Favorite place to visit"
+              placeholder="e.g. Paris"
+              error={errors.favPlace?.message}
+              {...register('favPlace')}
+            />
+          </div>
+        </div>
 
         <Button type="submit" className="w-full" size="lg" loading={loading}>
           Create Account

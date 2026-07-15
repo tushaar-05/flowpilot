@@ -33,14 +33,14 @@ export function FilterDropdown({ label, options, value, onChange, className }: F
     <div ref={ref} className={cn('relative', className)}>
       <button
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-2 rounded-2xl border-2 border-ink bg-white px-4 py-2.5 text-sm font-bold hover:bg-yellow/20 transition-all shadow-brutal-sm"
+        className="inline-flex items-center gap-2 rounded-2xl border-2 border-ink bg-surface px-4 py-2.5 text-sm font-bold hover:bg-yellow/20 transition-all shadow-brutal-sm"
       >
         <span className="text-muted">{label}:</span>
         <span className="text-ink">{selected?.label ?? 'All'}</span>
         <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 z-20 mt-2 min-w-[200px] rounded-2xl border-2 border-ink bg-white py-2 shadow-brutal">
+        <div className="absolute top-full left-0 z-20 mt-2 min-w-[200px] rounded-2xl border-2 border-ink bg-surface py-2 shadow-brutal">
           {options.map((option) => (
             <button
               key={option.value}

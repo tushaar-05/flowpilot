@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, CheckSquare, Trash2, Undo2, Download } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -28,8 +29,38 @@ export function TasksPage() {
   const [sortBy, setSortBy] = useState<SortField>('dueDate');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('newTask') === 'true') {
+      setEditingTask(null);
+      setModalOpen(true);
+    }
+  }, [searchParams]); 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search);
+
+  useEffect(() => {
+    const taskId = searchParams.get('taskId');
+    if (!taskId) return;
+
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setEditingTask(task);
+      setModalOpen(true);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('taskId');
+        return next;
+      },
+      { replace: true }
+    );
+    // Deep-link is only relevant on initial navigation into this page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     let result = [...tasks];
@@ -67,7 +98,7 @@ export function TasksPage() {
 
   const sorted = useMemo(() => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    
+
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'title': return a.title.localeCompare(b.title);

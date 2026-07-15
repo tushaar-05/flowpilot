@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Mail, Phone, Users } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card } from '@/components/ui/Card';
@@ -8,11 +9,39 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { FilterDropdown } from '@/components/ui/FilterDropdown';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useApp } from '@/context/AppContext';
+import { cn } from '@/utils/cn';
 
 export function TeamPage() {
   const { users, projects, tasks } = useApp();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  // If the URL has a highlight param, scroll to that member and highlight them
+  useEffect(() => {
+    const target = searchParams.get('highlight');
+    if (!target) return;
+
+    setHighlightedId(target);
+    requestAnimationFrame(() => {
+      document.getElementById(`team-member-${target}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Strip the param so refreshing or sharing the URL doesn't re-trigger it
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('highlight');
+        return next;
+      },
+      { replace: true }
+    );
+
+    const timeout = setTimeout(() => setHighlightedId(null), 2500);
+    return () => clearTimeout(timeout);
+  }, [searchParams, setSearchParams]);
 
   const filtered = users.filter((u) => {
     const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -54,9 +83,15 @@ export function TeamPage() {
         {filtered.map((member) => {
           const memberProjects = projects.filter((p) => member.projectIds.includes(p.id));
           const workload = getWorkload(member.id);
+          const isHighlighted = member.id === highlightedId;
 
           return (
-            <Card key={member.id} hover>
+            <Card
+              key={member.id}
+              id={`team-member-${member.id}`}
+              hover
+              className={cn('scroll-mt-24 transition-all duration-500', isHighlighted && 'ring-4 ring-primary ring-offset-2')}
+            >
               <div className="flex items-start gap-4">
                 <Tooltip content={member.role} position="left">
                   <div className="shrink-0">

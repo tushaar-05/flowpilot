@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Zap, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ROUTES } from '@/constants';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,26 +36,29 @@ export function LandingNav() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
-          {isAuthenticated ? (
-            <Link to={ROUTES.DASHBOARD}>
-              <Button size="sm">Open Dashboard</Button>
-            </Link>
-          ) : (
-            <>
-              <Link to={ROUTES.LOGIN}>
-                <Button variant="ghost" size="sm">Sign In</Button>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <div className="hidden md:flex items-center gap-3">
+            {isAuthenticated ? (
+              <Link to={ROUTES.DASHBOARD}>
+                <Button size="sm">Open Dashboard</Button>
               </Link>
-              <Link to={ROUTES.REGISTER}>
-                <Button size="sm">Get Started</Button>
-              </Link>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <Link to={ROUTES.LOGIN}>
+                  <Button variant="ghost" size="sm">Sign In</Button>
+                </Link>
+                <Link to={ROUTES.REGISTER}>
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
+          </div>
 
-        <button className="md:hidden p-2 rounded-xl border-2 border-ink" onClick={() => setOpen(true)}>
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          <button className="md:hidden p-2 rounded-xl border-2 border-ink" onClick={() => setOpen(!open)}>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -67,7 +71,7 @@ export function LandingNav() {
           >
             <div className="px-6 py-4 space-y-3">
               {links.map((l) => (
-                <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="block text-base font-bold py-2">
+                <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="block text-base font-bold py-2 text-background hover:text-background">
                   {l.label}
                 </a>
               ))}
@@ -77,7 +81,7 @@ export function LandingNav() {
                 </Link>
                 {!isAuthenticated && (
                   <Link to={ROUTES.LOGIN} onClick={() => setOpen(false)}>
-                    <Button variant="outline" className="w-full">Sign In</Button>
+                    <Button variant="primary" className="w-full">Sign In</Button>
                   </Link>
                 )}
               </div>

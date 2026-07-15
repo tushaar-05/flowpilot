@@ -15,17 +15,37 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
-  register: (data: Omit<AuthUser, 'createdAt' | 'avatar'> & { password: string }) => Promise<{ success: boolean; error?: string }>;
+  register: (data: { name: string; email: string; password: string; placeOfBirth: string; petName: string; favPlace: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updatePassword: (email: string, newPassword: string) => Promise<boolean>;
   getUsers: () => AuthUser[];
   updateAuthUser: (name: string, email: string, avatar: string) => void;
+  updateSecurityQuestions: (email: string, questions: { placeOfBirth: string; petName: string; favPlace: string }) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function getStoredUsers(): AuthUser[] {
-  return getFromStorage<AuthUser[]>(STORAGE_KEYS.USERS, []);
+  const users = getFromStorage<AuthUser[]>(STORAGE_KEYS.USERS, []);
+  let updated = false;
+  const mapped = users.map((u) => {
+    if (!u.securityQuestions) {
+      updated = true;
+      return {
+        ...u,
+        securityQuestions: {
+          placeOfBirth: 'Delhi',
+          petName: 'Buddy',
+          favPlace: 'Paris',
+        },
+      };
+    }
+    return u;
+  });
+  if (updated) {
+    setToStorage(STORAGE_KEYS.USERS, mapped);
+  }
+  return mapped;
 }
 
 function saveUsers(users: AuthUser[]) {
@@ -85,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true };
   }, []);
 
-  const register = useCallback(async (data: { name: string; email: string; password: string }) => {
+  const register = useCallback(async (data: { name: string; email: string; password: string; placeOfBirth: string; petName: string; favPlace: string }) => {
     await new Promise((r) => setTimeout(r, 500));
     const users = getStoredUsers();
 
@@ -101,6 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: hashedPassword,
       avatar: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${encodeURIComponent(data.name)}`,
       createdAt: new Date().toISOString(),
+      securityQuestions: {
+        placeOfBirth: data.placeOfBirth,
+        petName: data.petName,
+        favPlace: data.favPlace,
+      },
     };
 
     saveUsers([...users, newUser]);
@@ -155,6 +180,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateSecurityQuestions = useCallback(async (
+    email: string,
+    questions: { placeOfBirth: string; petName: string; favPlace: string }
+  ) => {
+    const users = getStoredUsers();
+    const index = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
+    if (index === -1) return false;
+
+    users[index] = {
+      ...users[index],
+      securityQuestions: {
+        placeOfBirth: questions.placeOfBirth,
+        petName: questions.petName,
+        favPlace: questions.favPlace,
+      },
+    };
+    saveUsers(users);
+    if (user?.email.toLowerCase() === email.toLowerCase()) {
+      setUser(users[index]);
+    }
+    return true;
+  }, [user]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -167,6 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatePassword,
         getUsers,
         updateAuthUser,
+        updateSecurityQuestions,
       }}
     >
       {children}
