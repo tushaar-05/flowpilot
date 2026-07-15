@@ -253,7 +253,7 @@ export function DashboardPage() {
                   <span>Progress</span>
                   <span className="text-primary">{topProject.progress}%</span>
                 </div>
-                <div className="h-4 rounded-full border-2 border-ink bg-white overflow-hidden">
+                <div className="h-4 rounded-full border-2 border-ink bg-surface overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${topProject.progress}%` }}
@@ -313,7 +313,7 @@ export function DashboardPage() {
             {urgentDeadlines.map((task) => {
               const due = getDueDateLabel(task.dueDate);
               return (
-                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-ink bg-white shadow-brutal-sm">
+                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-ink bg-surface shadow-brutal-sm">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-ink bg-accent/20">
                     <Clock className="h-5 w-5 text-accent" />
                   </div>

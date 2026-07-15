@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
-import { Zap, Menu, X } from 'lucide-react';
+import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ROUTES } from '@/constants';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export function LandingNav() {
   const [open, setOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const links = [
     { href: '#features', label: 'Features' },
@@ -36,6 +38,14 @@ export function LandingNav() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            aria-label="Toggle Theme"
+            className="rounded-xl border-2 border-ink p-2 hover:bg-yellow/30 transition-colors shadow-brutal-sm bg-surface"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5 text-ink" /> : <Sun className="h-5 w-5 text-yellow" />}
+          </button>
           {isAuthenticated ? (
             <Link to={ROUTES.DASHBOARD}>
               <Button size="sm">Open Dashboard</Button>
@@ -52,9 +62,19 @@ export function LandingNav() {
           )}
         </div>
 
-        <button className="md:hidden p-2 rounded-xl border-2 border-ink" onClick={() => setOpen(true)}>
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            onClick={toggleTheme}
+            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            aria-label="Toggle Theme"
+            className="p-2 rounded-xl border-2 border-ink bg-surface shadow-brutal-sm"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5 text-ink" /> : <Sun className="h-5 w-5 text-yellow" />}
+          </button>
+          <button className="p-2 rounded-xl border-2 border-ink bg-surface shadow-brutal-sm" onClick={() => setOpen(!open)}>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>

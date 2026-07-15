@@ -150,7 +150,7 @@ export default function Blog() {
   const posts = articles.slice(1);
 
   return (
-    <main className="min-h-screen bg-white text-ink">
+    <main className="min-h-screen bg-background text-ink">
       {/* HERO */}
       <section className="relative overflow-hidden border-b-2 border-ink px-6 py-20 md:py-28">
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/10" />
@@ -190,7 +190,7 @@ export default function Blog() {
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center bg-white p-8 md:p-12">
+              <div className="flex flex-col justify-center bg-surface p-8 md:p-12">
                 <span className="text-sm font-extrabold tracking-[0.15em] text-primary">
                   {featuredPost.category}
                 </span>
@@ -247,7 +247,7 @@ export default function Blog() {
               return (
                 <article
                   key={post.id}
-                  className="group flex flex-col rounded-2xl border-2 border-ink bg-white p-6 shadow-brutal-sm transition-transform hover:-translate-y-1"
+                  className="group flex flex-col rounded-2xl border-2 border-ink bg-surface p-6 shadow-brutal-sm transition-transform hover:-translate-y-1"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-ink bg-primary/10">
                     <Icon className="h-6 w-6 text-primary" />
@@ -307,7 +307,7 @@ export default function Blog() {
 
             <Link
               to={ROUTES.REGISTER}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white bg-white px-6 py-3 font-extrabold text-ink"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white bg-surface px-6 py-3 font-extrabold text-ink"
             >
               Try FlowPilot
               <ArrowRight className="h-5 w-5" />
@@ -327,7 +327,7 @@ export default function Blog() {
             aria-modal="true"
             aria-labelledby="article-title"
             onClick={(event) => event.stopPropagation()}
-            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border-2 border-ink bg-white p-6 shadow-brutal-sm md:p-10"
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border-2 border-ink bg-surface p-6 shadow-brutal-sm md:p-10"
           >
             <div className="flex items-start justify-between gap-6">
               <div>

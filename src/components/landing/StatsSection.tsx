@@ -9,14 +9,14 @@ const stats = [
 
 export function StatsSection() {
   return (
-    <section className="py-20 px-6 border-t-2 border-ink bg-ink text-white">
+    <section className="py-20 px-6 border-t-2 border-ink bg-ink text-white" style={{ backgroundColor: '#111827' }}>
       <div className="mx-auto max-w-6xl grid grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((s) => (
           <div key={s.label} className="text-center">
             <p className="text-4xl sm:text-5xl font-extrabold text-yellow">
               <AnimatedCounter value={s.value} suffix={s.suffix} />
             </p>
-            <p className="mt-2 text-sm font-bold text-white/70 uppercase tracking-wider">{s.label}</p>
+            <p className="mt-2 text-sm font-bold text-white/90 uppercase tracking-wider">{s.label}</p>
           </div>
         ))}
       </div>

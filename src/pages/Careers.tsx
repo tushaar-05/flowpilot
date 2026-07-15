@@ -4,7 +4,7 @@ import { ArrowRight, Zap, Users, Lightbulb } from 'lucide-react';
 
 const Careers: React.FC = () => {
   return (
-    <main className="min-h-screen bg-white text-ink">
+    <main className="min-h-screen bg-background text-ink">
       <section className="border-b-2 border-ink px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em]">

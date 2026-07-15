@@ -45,7 +45,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-30 flex h-full flex-col border-r-2 border-ink bg-white transition-all duration-300',
+        'fixed left-0 top-0 z-30 flex h-full flex-col border-r-2 border-ink bg-surface transition-all duration-300',
         sidebarOpen ? 'w-64' : 'w-[76px]',
         'max-md:shadow-brutal-lg',
         !sidebarOpen && 'max-md:-translate-x-full max-md:w-64'

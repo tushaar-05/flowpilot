@@ -19,13 +19,27 @@
   --font-sans: "Manrope", system-ui, -apple-system, sans-serif;
 }
 
+:root {
+  --shadow-color: #111827;
+}
+
+.dark {
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-ink: #f8fafc;
+  --color-border: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-foreground: #f8fafc;
+  --shadow-color: #000000;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased transition-colors duration-200;
   }
 
   #root {
@@ -44,15 +58,15 @@
   }
 
   .shadow-brutal {
-    box-shadow: 4px 4px 0 0 #111827;
+    box-shadow: 4px 4px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-sm {
-    box-shadow: 2px 2px 0 0 #111827;
+    box-shadow: 2px 2px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-lg {
-    box-shadow: 6px 6px 0 0 #111827;
+    box-shadow: 6px 6px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-hover {
@@ -61,19 +75,27 @@
 
   .shadow-brutal-hover:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 #111827;
+    box-shadow: 6px 6px 0 0 var(--shadow-color);
   }
 
   .shadow-brutal-active:active {
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 0 #111827;
+    box-shadow: 2px 2px 0 0 var(--shadow-color);
   }
 
   .border-brutal {
-    border: 2.5px solid #111827;
+    border: 2.5px solid var(--color-border);
   }
 
   .text-ink {
-    color: #111827;
+    color: var(--color-ink);
+  }
+
+  .bg-ink {
+    background-color: var(--color-ink);
+  }
+
+  .border-ink {
+    border-color: var(--color-border);
   }
 }

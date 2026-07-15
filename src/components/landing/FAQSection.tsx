@@ -30,7 +30,7 @@ export function FAQSection() {
         <h2 className="text-4xl font-extrabold text-ink text-center mb-12">
           Questions? We&apos;ve got answers.
         </h2>
-        <div className="rounded-3xl border-2 border-ink bg-white px-6 shadow-brutal">
+        <div className="rounded-3xl border-2 border-ink bg-surface px-6 shadow-brutal">
           {faqs.map((f) => (
             <AccordionItem key={f.q} title={f.q}>
               {f.a}

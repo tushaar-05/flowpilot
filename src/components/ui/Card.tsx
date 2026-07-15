@@ -16,7 +16,7 @@ const paddingMap = {
 };
 
 const colorMap = {
-  white: 'bg-white',
+  white: 'bg-surface',
   yellow: 'bg-yellow/20',
   blue: 'bg-primary/10',
   pink: 'bg-pink/15',

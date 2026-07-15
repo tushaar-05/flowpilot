@@ -47,7 +47,7 @@ const principles = [
 
 export default function About() {
   return (
-    <main className="min-h-screen bg-white text-ink">
+    <main className="min-h-screen bg-background text-ink">
       {/* Hero */}
       <section className="relative overflow-hidden border-b-2 border-ink px-6 py-20 md:py-28">
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/10" />
@@ -81,7 +81,7 @@ export default function About() {
 
             <Link
               to={ROUTES.LANDING}
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-white px-6 py-3 font-extrabold shadow-brutal-sm transition-transform hover:-translate-y-1"
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-surface px-6 py-3 font-extrabold shadow-brutal-sm transition-transform hover:-translate-y-1"
             >
               Back to home
             </Link>
@@ -114,7 +114,7 @@ export default function About() {
           </div>
 
           <div className="rounded-2xl border-2 border-ink bg-primary/10 p-6 shadow-brutal">
-            <div className="rounded-xl border-2 border-ink bg-white p-8">
+            <div className="rounded-xl border-2 border-ink bg-surface p-8">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-ink bg-primary shadow-brutal-sm">
                 <Target className="h-7 w-7 text-white" />
               </div>
@@ -171,7 +171,7 @@ export default function About() {
               return (
                 <article
                   key={value.title}
-                  className="rounded-2xl border-2 border-ink bg-white p-7 shadow-brutal-sm transition-transform hover:-translate-y-1"
+                  className="rounded-2xl border-2 border-ink bg-surface p-7 shadow-brutal-sm transition-transform hover:-translate-y-1"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-ink bg-primary/10">
                     <Icon className="h-6 w-6 text-primary" />

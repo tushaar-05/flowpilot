@@ -179,7 +179,7 @@ export function TimelinePage() {
           description="Tasks with due dates in the next 3 months will appear here."
         />
       ) : (
-        <div role="region" aria-label="Task timeline" className="relative z-10 rounded-3xl border-2 border-ink bg-white shadow-brutal overflow-hidden">
+        <div role="region" aria-label="Task timeline" className="relative z-10 rounded-3xl border-2 border-ink bg-surface shadow-brutal overflow-hidden">
           {/* ── Header ── */}
           <div className="flex border-b-2 border-ink">
             {/* PROJECT header cell — width matches the sticky body labels below */}

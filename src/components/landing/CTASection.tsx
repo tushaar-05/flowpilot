@@ -23,7 +23,7 @@ export function CTASection() {
             </Button>
           </Link>
           <Link to={ROUTES.DASHBOARD}>
-            <Button variant="outline" size="lg" className="bg-white">
+            <Button variant="outline" size="lg" className="bg-surface text-ink">
               View Demo
             </Button>
           </Link>
