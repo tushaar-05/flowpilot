@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,11 +17,14 @@ import {
   ChevronLeft,
   Zap,
   LogOut,
+  Trash2,
+  Megaphone,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/constants';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const navItems = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
@@ -30,22 +34,25 @@ const navItems = [
   { to: ROUTES.CALENDAR, label: 'Calendar', icon: Calendar },
   { to: ROUTES.TIMELINE, label: 'Timeline', icon: GanttChart },
   { to: ROUTES.TEAM, label: 'Team', icon: Users },
+  { to: ROUTES.NOTICES, label: 'Notice Board', icon: Megaphone },
   { to: ROUTES.ACTIVITY, label: 'Activity', icon: Activity },
   { to: ROUTES.FILES, label: 'Files', icon: FileText },
   { to: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
   { to: ROUTES.TRASH, label: 'Trash', icon: Trash2 },
   { to: ROUTES.ANALYTICS, label: 'Analytics', icon: BarChart3 },
+  { to: ROUTES.TRASH, label: 'Trash Bin', icon: Trash2 },
 ];
 
 export function Sidebar() {
-  const { sidebarOpen, setSidebarOpen, notifications } = useApp();
+  const { sidebarOpen, setSidebarOpen, notifications, deletedItems } = useApp();
   const { logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-30 flex h-full flex-col border-r-2 border-ink bg-white transition-all duration-300',
+        'fixed left-0 top-0 z-30 flex h-full flex-col border-r-2 border-ink bg-surface transition-all duration-300',
         sidebarOpen ? 'w-64' : 'w-[76px]',
         'max-md:shadow-brutal-lg',
         !sidebarOpen && 'max-md:-translate-x-full max-md:w-64'
@@ -69,6 +76,9 @@ export function Sidebar() {
             <li key={item.to}>
               <NavLink
                 to={item.to}
+                onClick={() => {
+                if (window.innerWidth < 768) setSidebarOpen(false);
+                }}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition-all duration-150 border-2',
@@ -83,6 +93,11 @@ export function Sidebar() {
                 {sidebarOpen && item.to === ROUTES.NOTIFICATIONS && unreadCount > 0 && (
                   <span className="flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-ink bg-pink px-1.5 text-[10px] font-extrabold text-white">
                     {unreadCount}
+                  </span>
+                )}
+                {sidebarOpen && item.to === ROUTES.TRASH && deletedItems.length > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-ink bg-pink px-1.5 text-[10px] font-extrabold text-white">
+                    {deletedItems.length}
                   </span>
                 )}
               </NavLink>
@@ -105,7 +120,7 @@ export function Sidebar() {
           {sidebarOpen && <span>Settings</span>}
         </NavLink>
         <button
-          onClick={logout}
+          onClick={() => setShowLogoutConfirm(true)}
           className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-muted hover:text-danger hover:bg-red-50 border-2 border-transparent transition-all"
         >
           <LogOut className="h-5 w-5 shrink-0" />
@@ -115,10 +130,23 @@ export function Sidebar() {
 
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute -right-3.5 top-20 hidden h-7 w-7 items-center justify-center rounded-xl border-2 border-ink bg-yellow shadow-brutal-sm hover:shadow-brutal md:flex"
+        className={cn(
+          'absolute -right-3.5 top-20 flex h-7 w-7 items-center justify-center rounded-xl border-2 border-ink bg-yellow shadow-brutal-sm hover:shadow-brutal',
+          !sidebarOpen && 'max-md:hidden'
+        )}
       >
         <ChevronLeft className={cn('h-4 w-4 transition-transform', !sidebarOpen && 'rotate-180')} />
       </button>
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={logout}
+        title="⚠️ Confirm Logout"
+        message="Are you sure you want to log out? Any unsaved changes in your current session may be lost."
+        confirmLabel="Log Out"
+        variant="accent"
+      />
     </aside>
   );
 }

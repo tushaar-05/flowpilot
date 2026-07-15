@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ROUTES } from '@/constants';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function AuthLayout({
   children,
@@ -13,7 +14,10 @@ export function AuthLayout({
   subtitle: string;
 }) {
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex relative">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 border-r-2 border-ink relative overflow-hidden">
         <Link to={ROUTES.LANDING} className="flex items-center gap-3 z-10">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-ink bg-primary shadow-brutal">

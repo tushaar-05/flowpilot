@@ -21,7 +21,7 @@ const LEFT_COL = 200;
 // Opaque equivalent of bg-yellow/20 (#facc15 at 20% over #fffdf7).
 // Using a precomputed solid color so the sticky PROJECT cell fully covers
 // whatever scrolls behind it.
-const PROJECT_COL_BG = '#fef9e3';
+const PROJECT_COL_BG = 'var(--color-project-col-bg)';
 const TIMELINE_MONTHS = 3;
 const MIN_LABEL_WIDTH = 48;
 const LABEL_PADDING = 2;
@@ -179,7 +179,7 @@ export function TimelinePage() {
           description="Tasks with due dates in the next 3 months will appear here."
         />
       ) : (
-        <div role="region" aria-label="Task timeline" className="relative z-10 rounded-3xl border-2 border-ink bg-white shadow-brutal overflow-hidden">
+        <div role="region" aria-label="Task timeline" className="relative z-10 rounded-3xl border-2 border-ink bg-surface shadow-brutal overflow-hidden">
           {/* ── Header ── */}
           <div className="flex border-b-2 border-ink">
             {/* PROJECT header cell — width matches the sticky body labels below */}

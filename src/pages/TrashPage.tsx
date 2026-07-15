@@ -1,230 +1,258 @@
-import { useState } from 'react';
-import {
-  Trash2,
-  Undo2,
-  FileText,
-  CheckSquare,
-  FolderKanban,
-  Bell,
-  AlertTriangle,
-} from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Trash2, RotateCcw, FolderKanban, CheckSquare, AlertTriangle } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { Card } from '@/components/ui/Card';
+import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { SearchBar } from '@/components/ui/SearchBar';
-import { FilterDropdown } from '@/components/ui/FilterDropdown';
+import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Tabs } from '@/components/ui/Tabs';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useApp } from '@/context/AppContext';
-import { formatRelative, formatFileSize } from '@/utils/helpers';
-import type { DeletedItem } from '@/types';
-
-const typeIcons = {
-  file: FileText,
-  task: CheckSquare,
-  project: FolderKanban,
-  notification: Bell,
-};
-
-const typeBadgeColors: Record<DeletedItem['type'], 'yellow' | 'blue' | 'purple' | 'pink'> = {
-  file: 'yellow',
-  task: 'blue',
-  project: 'purple',
-  notification: 'pink',
-};
-
-const typeLabels: Record<DeletedItem['type'], string> = {
-  file: 'File',
-  task: 'Task',
-  project: 'Project',
-  notification: 'Notification',
-};
+import { cn } from '@/utils/cn';
+import { capitalize } from '@/utils/helpers';
+import type { DeletedItem, Task, Project } from '@/types';
 
 export function TrashPage() {
-  const { deletedStack, restoreDeletedItem, permanentlyDeleteItem, emptyTrash, projects } = useApp();
+  const { deletedItems, restoreDeletedItem, permanentlyDeleteItem, emptyTrash, projects } = useApp();
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [confirmEmptyOpen, setConfirmEmptyOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<DeletedItem | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+  
+  // Modals state
+  const [confirmEmptyModal, setConfirmEmptyModal] = useState(false);
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [confirmItem, setConfirmItem] = useState<DeletedItem | null>(null);
 
-  const getItemTitle = (item: DeletedItem['item']): string => {
-    if ('title' in item && typeof (item as { title?: string }).title === 'string') {
-      return (item as { title: string }).title;
+  const filteredItems = useMemo(() => {
+    let result = [...deletedItems];
+
+    // Filter by tab
+    if (activeTab === 'projects') {
+      result = result.filter((item) => item.type === 'project');
+    } else if (activeTab === 'tasks') {
+      result = result.filter((item) => item.type === 'task');
     }
-    if ('name' in item && typeof (item as { name?: string }).name === 'string') {
-      return (item as { name: string }).name;
+
+    // Filter by search
+    const query = search.trim().toLowerCase();
+    if (query) {
+      result = result.filter((item) => {
+        const title = item.type === 'task' 
+          ? (item.item as Task).title 
+          : (item.item as Project).name;
+        const desc = item.item.description || '';
+        return title.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
+      });
     }
-    if ('message' in item && typeof (item as { message?: string }).message === 'string') {
-      return (item as { message: string }).message;
-    }
-    return 'Untitled Item';
+
+    // Sort by deleted date (newest first)
+    result.sort((a, b) => b.deletedAt - a.deletedAt);
+
+    return result;
+  }, [deletedItems, activeTab, search]);
+
+  const handleRestore = async (item: DeletedItem) => {
+    await restoreDeletedItem(item);
   };
 
-  const filtered = deletedStack
-    .filter((d) => {
-      const title = getItemTitle(d.item);
-      const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || d.type === categoryFilter;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => b.deletedAt - a.deletedAt);
-
-  const getItemSubtitle = (d: DeletedItem) => {
-    if (d.type === 'file') {
-      const file = d.item as { size: number; projectId: string };
-      const project = projects.find((p) => p.id === file.projectId);
-      return `${formatFileSize(file.size)}${project ? ` · ${project.name}` : ''}`;
+  const handlePermanentDelete = async () => {
+    if (confirmItem) {
+      await permanentlyDeleteItem(confirmItem);
+      setConfirmItem(null);
+      setConfirmDeleteModal(false);
     }
-    if (d.type === 'task') {
-      const task = d.item as { projectId: string; priority: string };
-      const project = projects.find((p) => p.id === task.projectId);
-      return `${project ? project.name : 'No Project'} · Priority: ${task.priority}`;
-    }
-    if (d.type === 'project') {
-      const project = d.item as { status: string };
-      return `Status: ${project.status}`;
-    }
-    if (d.type === 'notification') {
-      const notif = d.item as { category: string };
-      return `Category: ${notif.category}`;
-    }
-    return '';
   };
+
+  const handleEmptyTrash = async () => {
+    await emptyTrash();
+    setConfirmEmptyModal(false);
+  };
+
+  const tableRows = filteredItems.map((item) => ({
+    id: `${item.type}-${item.item.id}`,
+    original: item,
+    title: item.type === 'task' ? (item.item as Task).title : (item.item as Project).name,
+    type: item.type,
+    deletedAt: item.deletedAt,
+    context: item.type === 'task' ? (item.item as Task).projectId : '',
+  }));
+
+  const columns = [
+    {
+      key: 'title',
+      header: 'Name / Title',
+      render: (row: any) => {
+        const isTask = row.type === 'task';
+        const project = isTask ? projects.find((p) => p.id === row.context) : null;
+        return (
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-ink shadow-brutal-sm text-white',
+              isTask ? 'bg-primary' : 'bg-secondary'
+            )}>
+              {isTask ? <CheckSquare className="h-5 w-5" /> : <FolderKanban className="h-5 w-5" />}
+            </div>
+            <div>
+              <p className="font-extrabold text-ink">{row.title}</p>
+              {isTask && (
+                <p className="text-xs text-muted">
+                  Project: <span className="font-bold">{project?.name ?? 'Unknown Project'}</span>
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      render: (row: any) => (
+        <Badge className={row.type === 'task' ? 'bg-primary/20 text-ink border-ink font-bold' : 'bg-secondary/20 text-ink border-ink font-bold'}>
+          {capitalize(row.type)}
+        </Badge>
+      ),
+    },
+    {
+      key: 'deletedAt',
+      header: 'Deleted At',
+      render: (row: any) => (
+        <span className="text-sm font-semibold text-muted">
+          {formatDistanceToNow(new Date(row.deletedAt), { addSuffix: true })}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      className: 'w-36 text-right',
+      render: (row: any) => (
+        <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleRestore(row.original)}
+            title="Restore Item"
+            className="shadow-brutal-sm py-1.5 px-3 border-2 border-ink hover:bg-yellow/20 active:translate-x-0.5 active:translate-y-0.5 active:shadow-brutal-sm transition-all"
+          >
+            <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setConfirmItem(row.original);
+              setConfirmDeleteModal(true);
+            }}
+            title="Permanently Delete"
+            className="shadow-brutal-sm py-1.5 px-3 border-2 border-ink text-danger hover:bg-red-50 hover:text-danger active:translate-x-0.5 active:translate-y-0.5 active:shadow-brutal-sm transition-all"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const tabs = [
+    { id: 'all', label: `All (${deletedItems.length})` },
+    { id: 'projects', label: `Projects (${deletedItems.filter((i) => i.type === 'project').length})` },
+    { id: 'tasks', label: `Tasks (${deletedItems.filter((i) => i.type === 'task').length})` },
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <Breadcrumb items={[{ label: 'Trash' }]} />
-          <h1 className="text-2xl font-bold mt-2 flex items-center gap-2">
-            <Trash2 className="h-6 w-6 text-danger" /> Trash
-          </h1>
+          <Breadcrumb items={[{ label: 'Trash Bin' }]} />
+          <h1 className="text-2xl font-bold mt-2">Trash Bin</h1>
           <p className="text-muted text-sm mt-1">
-            {deletedStack.length} {deletedStack.length === 1 ? 'item' : 'items'} currently in Trash
+            Items in the trash will remain saved until permanently deleted or restored.
           </p>
         </div>
-        {deletedStack.length > 0 && (
-          <Button variant="danger" onClick={() => setConfirmEmptyOpen(true)}>
-            <Trash2 className="h-4 w-4" /> Empty Trash
+        {deletedItems.length > 0 && (
+          <Button 
+            variant="outline" 
+            onClick={() => setConfirmEmptyModal(true)}
+            className="shadow-brutal-sm border-2 border-ink text-danger hover:bg-red-50 hover:text-danger hover:border-danger transition-all duration-150"
+          >
+            <Trash2 className="h-4 w-4 mr-1.5" /> Empty Trash
           </Button>
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-          placeholder="Search deleted items..."
-          className="flex-1"
-        />
-        <FilterDropdown
-          label="Category"
-          value={categoryFilter}
-          onChange={setCategoryFilter}
-          options={[
-            { value: 'all', label: 'All Items' },
-            { value: 'file', label: 'Files' },
-            { value: 'task', label: 'Tasks' },
-            { value: 'project', label: 'Projects' },
-            { value: 'notification', label: 'Notifications' },
-          ]}
-        />
-      </div>
-
-      {filtered.length === 0 ? (
+      {/* Main content */}
+      {deletedItems.length === 0 ? (
         <EmptyState
-          icon={<Trash2 className="h-8 w-8 text-muted" />}
-          title={deletedStack.length === 0 ? 'Trash is empty' : 'No matching items found'}
-          description={
-            deletedStack.length === 0
-              ? 'Items deleted from Files, Tasks, Projects, and Notifications will appear here.'
-              : 'Try adjusting your search or category filter.'
-          }
+          icon={<Trash2 className="h-10 w-10 text-muted" />}
+          title="Trash Bin is Empty"
+          description="Deleted projects and tasks will appear here, allowing you to restore them anytime."
         />
       ) : (
-        <div className="space-y-3">
-          {filtered.map((d, index) => {
-            const Icon = typeIcons[d.type] ?? AlertTriangle;
-            const title = getItemTitle(d.item);
-            const subtitle = getItemSubtitle(d);
+        <div className="space-y-6">
+          {/* Filters and search */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <SearchBar 
+              value={search} 
+              onChange={setSearch} 
+              placeholder="Search deleted items..." 
+              className="flex-1"
+            />
+          </div>
 
-            return (
-              <Card
-                key={`${d.item.id}-${d.deletedAt}-${index}`}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-ink"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-ink bg-slate-50 shadow-brutal-sm">
-                    <Icon className="h-6 w-6 text-ink" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-extrabold truncate text-ink">{title}</h3>
-                      <Badge variant="solid" color={typeBadgeColors[d.type]}>
-                        {typeLabels[d.type]}
-                      </Badge>
-                    </div>
-                    {subtitle && <p className="text-xs font-bold text-muted mt-0.5">{subtitle}</p>}
-                    <p className="text-[11px] font-medium text-muted mt-1">
-                      Deleted {formatRelative(d.deletedAt)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 sm:self-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => restoreDeletedItem(d)}
-                    className="flex items-center gap-1.5 font-bold"
-                  >
-                    <Undo2 className="h-3.5 w-3.5" /> Restore
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setItemToDelete(d)}
-                    className="p-2 text-danger hover:bg-red-50"
-                    title="Permanently Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
+          {/* Tabs and Data Table */}
+          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab}>
+            {filteredItems.length === 0 ? (
+              <EmptyState
+                icon={<AlertTriangle className="h-8 w-8 text-muted" />}
+                title="No items match your criteria"
+                description="Try clearing your search query or selecting a different tab."
+                action={
+                  search ? (
+                    <Button variant="outline" size="sm" onClick={() => setSearch('')}>
+                      Clear Search
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : (
+              <DataTable
+                columns={columns}
+                data={tableRows}
+              />
+            )}
+          </Tabs>
         </div>
       )}
 
+      {/* Confirmation Modals */}
       <ConfirmDialog
-        open={confirmEmptyOpen}
-        onClose={() => setConfirmEmptyOpen(false)}
-        onConfirm={() => {
-          emptyTrash();
-          setConfirmEmptyOpen(false);
-        }}
-        title="Empty Trash"
-        message="Are you sure you want to permanently delete all items in the Trash? This action cannot be undone."
+        open={confirmEmptyModal}
+        onClose={() => setConfirmEmptyModal(false)}
+        onConfirm={handleEmptyTrash}
+        title="Empty Trash Bin"
+        message="Are you sure you want to permanently delete all items in the trash? This action is irreversible."
         confirmLabel="Empty Trash"
-        variant="danger"
+        variant="accent"
       />
 
       <ConfirmDialog
-        open={Boolean(itemToDelete)}
-        onClose={() => setItemToDelete(null)}
-        onConfirm={() => {
-          if (itemToDelete) {
-            permanentlyDeleteItem(itemToDelete);
-            setItemToDelete(null);
-          }
+        open={confirmDeleteModal}
+        onClose={() => {
+          setConfirmDeleteModal(false);
+          setConfirmItem(null);
         }}
-        title="Permanently Delete Item"
+        onConfirm={handlePermanentDelete}
+        title={`Permanently Delete ${confirmItem?.type === 'task' ? 'Task' : 'Project'}`}
         message={`Are you sure you want to permanently delete "${
-          itemToDelete ? getItemTitle(itemToDelete.item) : ''
-        }"? This action cannot be undone.`}
+          confirmItem?.type === 'task' 
+            ? (confirmItem.item as Task).title 
+            : (confirmItem?.item as Project)?.name
+        }"? This action is irreversible.`}
         confirmLabel="Delete Permanently"
-        variant="danger"
+        variant="accent"
       />
     </div>
   );

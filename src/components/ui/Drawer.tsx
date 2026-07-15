@@ -32,7 +32,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="absolute right-0 top-0 h-full w-full max-w-md border-l-2 border-ink bg-white shadow-brutal-lg"
+            className="absolute right-0 top-0 h-full w-full max-w-md border-l-2 border-ink bg-surface shadow-brutal-lg"
           >
             <div className="flex items-center justify-between border-b-2 border-ink px-6 py-5">
               <h2 className="text-xl font-extrabold text-ink">{title}</h2>

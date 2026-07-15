@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,7 +13,14 @@ const schema = z.object({
   description: z.string(),
   priority: z.string(),
   status: z.string(),
-  dueDate: z.string().optional(),
+  dueDate: z.string().optional().refine(
+    (val) => {
+      if (!val) return true;
+      const year = val.split('-')[0];
+      return year.length === 4 && parseInt(year) <= 2030;
+    },
+    { message: 'Year must be 4 digits and cannot exceed 2030' }
+  ),
   projectId: z.string().min(1, 'Project is required'),
   assigneeId: z.string().min(1, 'Assignee is required'),
   labels: z.string(),
@@ -35,6 +43,7 @@ export function TaskFormModal({ open, onClose, onSubmit, task, defaultProjectId,
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -61,6 +70,34 @@ export function TaskFormModal({ open, onClose, onSubmit, task, defaultProjectId,
         },
   });
 
+  useEffect(() => {
+    if (open) {
+      reset(
+        task
+          ? {
+              title: task.title,
+              description: task.description,
+              priority: task.priority,
+              status: task.status,
+              dueDate: task.dueDate,
+              projectId: task.projectId,
+              assigneeId: task.assigneeId,
+              labels: task.labels.join(', '),
+            }
+          : {
+              title: '',
+              description: '',
+              priority: 'medium',
+              status: 'todo',
+              dueDate: '',
+              projectId: defaultProjectId ?? '',
+              assigneeId: '',
+              labels: '',
+            }
+      );
+    }
+  }, [open, task, defaultProjectId, reset]);
+
   return (
     <Modal open={open} onClose={onClose} title={task ? 'Edit Task' : 'Create Task'} size="lg">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -83,7 +120,7 @@ export function TaskFormModal({ open, onClose, onSubmit, task, defaultProjectId,
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 w-[650px] max-w-none">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
           <div>
             <label className="block text-sm font-medium mb-1.5">Project</label>
             <select
@@ -112,7 +149,7 @@ export function TaskFormModal({ open, onClose, onSubmit, task, defaultProjectId,
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1.5">Status</label>
             <select {...register('status')} className="w-full rounded-lg border border-border px-3 py-2 text-sm">
@@ -133,9 +170,11 @@ export function TaskFormModal({ open, onClose, onSubmit, task, defaultProjectId,
             <label className="block text-sm font-medium mb-1.5">Due Date</label>
             <input
               type="date"
+              max="2030-12-31"
               {...register('dueDate')}
               className="w-full rounded-lg border border-border px-3 py-2 text-sm"
             />
+            {errors.dueDate && <p className="mt-1 text-xs text-danger">{errors.dueDate.message}</p>}
           </div>
         </div>
 

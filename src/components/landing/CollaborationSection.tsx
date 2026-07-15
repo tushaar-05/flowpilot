@@ -47,7 +47,7 @@ export function CollaborationSection() {
           viewport={{ once: true }}
           className="rounded-3xl border-2 border-ink bg-white p-8 shadow-brutal-lg"
         >
-          <div className="flex -space-x-3 mb-6">
+          <div className="flex space-x-12 mb-6">
             {avatars.map((src) => (
               <img key={src} src={src} alt="" className="h-12 w-12 rounded-full border-2 border-ink bg-yellow/30" />
             ))}

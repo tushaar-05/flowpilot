@@ -94,7 +94,11 @@ export function AnalyticsPage() {
         <Card>
           <p className="text-sm text-muted">Completion Rate</p>
           <p className="text-3xl font-bold mt-1 text-secondary">
-            {Math.round((tasks.filter((t) => t.status === 'completed').length / tasks.length) * 100)}%
+          {tasks.length === 0
+          ? 0
+            : Math.round(
+          (tasks.filter((t) => t.status === 'completed').length / tasks.length) * 100
+          )}%
           </p>
         </Card>
         <Card>
@@ -110,10 +114,10 @@ export function AnalyticsPage() {
           <CardTitle className="mb-4">Task Completion Trend</CardTitle>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={completionTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.15} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--color-muted)', fontWeight: 600 }} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted)', fontWeight: 600 }} />
+              <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-ink)', fontWeight: 600 }} />
               <Legend />
               <Line type="monotone" dataKey="completed" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} />
               <Line type="monotone" dataKey="created" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} />
@@ -125,10 +129,10 @@ export function AnalyticsPage() {
           <CardTitle className="mb-4">Priority Distribution</CardTitle>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={priorityBreakdown}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="priority" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.15} />
+              <XAxis dataKey="priority" tick={{ fontSize: 12, fill: 'var(--color-muted)', fontWeight: 600 }} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted)', fontWeight: 600 }} />
+              <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-ink)', fontWeight: 600 }} />
               <Bar dataKey="count" fill="#F59E0B" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -139,10 +143,10 @@ export function AnalyticsPage() {
         <CardTitle className="mb-4">Project Performance</CardTitle>
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={projectAnalytics} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis type="number" tick={{ fontSize: 12 }} />
-            <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
-            <Tooltip />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.15} />
+            <XAxis type="number" tick={{ fontSize: 12, fill: 'var(--color-muted)', fontWeight: 600 }} />
+            <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'var(--color-muted)', fontWeight: 600 }} width={120} />
+            <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-ink)', fontWeight: 600 }} />
             <Legend />
             <Bar dataKey="progress" fill="#3B82F6" name="Progress %" radius={[0, 4, 4, 0]} />
             <Bar dataKey="tasks" fill="#8B5CF6" name="Tasks" radius={[0, 4, 4, 0]} />
