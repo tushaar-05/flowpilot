@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { startOfWeek, addDays, subDays, format, isSameDay, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -21,19 +22,94 @@ import { useAuth } from '@/context/AuthContext';
 import { formatRelative, getDueDateLabel, capitalize } from '@/utils/helpers';
 import { ROUTES } from '@/constants';
 
-const weekData = [
-  { day: 'Mon', done: 4, total: 8 },
-  { day: 'Tue', done: 6, total: 9 },
-  { day: 'Wed', done: 5, total: 7 },
-  { day: 'Thu', done: 8, total: 10 },
-  { day: 'Fri', done: 7, total: 9 },
-  { day: 'Sat', done: 3, total: 4 },
-  { day: 'Sun', done: 2, total: 3 },
-];
-
 export function DashboardPage() {
   const { projects, tasks, users, activity } = useApp();
   const { user } = useAuth();
+
+  const { weekData, velocityComparison } = useMemo(() => {
+    const now = new Date();
+    const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const lastWeekStart = subDays(currentWeekStart, 7);
+
+    let thisWeekDone = 0;
+    let lastWeekDone = 0;
+
+    tasks.forEach((t) => {
+      if (t.status === 'completed' && t.updatedAt) {
+        try {
+          const updatedDate = parseISO(t.updatedAt);
+          for (let i = 0; i < 7; i++) {
+            if (isSameDay(updatedDate, addDays(lastWeekStart, i))) {
+              lastWeekDone++;
+              break;
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    });
+
+    const data = Array.from({ length: 7 }, (_, i) => {
+      const targetDay = addDays(currentWeekStart, i);
+      const dayLabel = format(targetDay, 'EEE');
+      const dateLabel = format(targetDay, 'MMM d, yyyy');
+
+      const done = tasks.filter((t) => {
+        if (t.status !== 'completed' || !t.updatedAt) return false;
+        try {
+          return isSameDay(parseISO(t.updatedAt), targetDay);
+        } catch {
+          return false;
+        }
+      }).length;
+
+      const dueOrCreated = tasks.filter((t) => {
+        try {
+          return (
+            (t.dueDate && isSameDay(parseISO(t.dueDate), targetDay)) ||
+            (t.createdAt && isSameDay(parseISO(t.createdAt), targetDay))
+          );
+        } catch {
+          return false;
+        }
+      }).length;
+
+      thisWeekDone += done;
+      const total = Math.max(done, dueOrCreated + done);
+
+      return {
+        day: dayLabel,
+        date: dateLabel,
+        done,
+        total,
+      };
+    });
+
+    let diffText = '0% vs last week';
+    let badgeColor: 'emerald' | 'orange' | 'blue' = 'blue';
+
+    if (lastWeekDone === 0) {
+      if (thisWeekDone > 0) {
+        diffText = `+${thisWeekDone} done this week`;
+        badgeColor = 'emerald';
+      }
+    } else {
+      const pct = Math.round(((thisWeekDone - lastWeekDone) / lastWeekDone) * 100);
+      if (pct > 0) {
+        diffText = `+${pct}% vs last week`;
+        badgeColor = 'emerald';
+      } else if (pct < 0) {
+        diffText = `${pct}% vs last week`;
+        badgeColor = 'orange';
+      } else {
+        diffText = '0% vs last week';
+        badgeColor = 'blue';
+      }
+    }
+
+    return { weekData: data, velocityComparison: { diffText, badgeColor } };
+  }, [tasks]);
 
   const openTasks = tasks.filter((t) => t.status !== 'completed').length;
   const completedTasks = tasks.filter((t) => t.status === 'completed').length;
@@ -137,7 +213,7 @@ export function DashboardPage() {
               <CardTitle>Weekly Velocity</CardTitle>
               <p className="text-sm text-muted mt-1 font-medium">Tasks completed vs planned this week</p>
             </div>
-            <Badge color="emerald">+18% vs last week</Badge>
+            <Badge color={velocityComparison.badgeColor}>{velocityComparison.diffText}</Badge>
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={weekData}>
@@ -149,7 +225,13 @@ export function DashboardPage() {
               </defs>
               <XAxis dataKey="day" tick={{ fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 16, border: '2px solid #111827', fontWeight: 700 }} />
+              <Tooltip
+                contentStyle={{ borderRadius: 16, border: '2px solid #111827', fontWeight: 700 }}
+                labelFormatter={(label, payload) => {
+                  const item = payload?.[0]?.payload;
+                  return item?.date ? `${label} (${item.date})` : label;
+                }}
+              />
               <Area type="monotone" dataKey="done" stroke="#3B82F6" strokeWidth={3} fill="url(#colorDone)" />
               <Area type="monotone" dataKey="total" stroke="#F97316" strokeWidth={2} strokeDasharray="6 4" fill="none" />
             </AreaChart>
