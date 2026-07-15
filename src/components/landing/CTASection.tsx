@@ -7,7 +7,7 @@ export function CTASection() {
   return (
     <section className="py-24 px-6 border-t-2 border-ink">
       <div className="mx-auto max-w-4xl rounded-3xl border-2 border-ink bg-primary p-12 sm:p-16 text-center shadow-brutal-lg relative overflow-hidden">
-        <div className="absolute top-4 right-8 h-40 w-40 rounded-2xl border-2 border-white/30 bg-yellow/80 rotate-12 z-9" />
+        <div className="absolute bottom-8 right-8 h-40 w-40 rounded-2xl border-2 border-white/30 bg-yellow/80 rotate-12 z-9" />
         <div className="absolute bottom-6 left-10 h-40 w-40 rounded-full border-2 border-white/30 bg-pink/80 z-9" />
 
         <h2 className="text-4xl sm:text-5xl font-extrabold text-white relative z-10">
