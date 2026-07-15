@@ -269,11 +269,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [files, loading]);
 
-  useEffect(() => {
-    if (!loading) {
-      setToStorage(STORAGE_KEYS.TRASH, deletedStack);
-    }
-  }, [deletedStack, loading]);
 
   const createProject = async (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
@@ -437,7 +432,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!notification) return;
 
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-    setDeletedStack((prev) => [{ type: 'notification', item: notification, deletedAt: Date.now() }, ...prev]);
+    setDeletedItems((prev) => [{ type: 'notification', item: notification, deletedAt: Date.now() }, ...prev]);
     addToast('info', 'Notification moved to Trash');
   };
 
@@ -499,7 +494,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!file) return;
 
     setFiles((prev) => prev.filter((f) => f.id !== id));
-    setDeletedStack((prev) => [{ type: 'file', item: file, deletedAt: Date.now() }, ...prev]);
+    setDeletedItems((prev) => [{ type: 'file', item: file, deletedAt: Date.now() }, ...prev]);
     addToast('success', 'File moved to Trash');
   };
 
@@ -637,10 +632,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         settings,
         sidebarOpen,
         setSidebarOpen,
-        deletedStack,
-        restoreDeletedItem,
-        permanentlyDeleteItem,
-        emptyTrash,
         createProject,
         updateProject,
         deleteProject,

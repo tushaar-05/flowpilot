@@ -85,6 +85,7 @@ export default function App() {
                     <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
                     <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
                     <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                    <Route path={ROUTES.TRASH} element={<TrashPage />} />
                   </Route>
 
                   <Route path="*" element={<NotFoundPage />} />

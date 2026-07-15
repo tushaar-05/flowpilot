@@ -62,6 +62,70 @@ export function DashboardPage() {
 
   const topProject = [...activeProjects].sort((a, b) => b.progress - a.progress)[0];
 
+  const weekData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const result = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dayName = days[d.getDay()];
+      
+      const completedOnDay = tasks.filter((t) => {
+        if (t.status !== 'completed' || !t.updatedAt) return false;
+        const taskDate = new Date(t.updatedAt);
+        return taskDate.toDateString() === d.toDateString();
+      }).length;
+
+      const totalOnDay = tasks.filter((t) => {
+        if (!t.dueDate) return false;
+        const taskDate = new Date(t.dueDate);
+        return taskDate.toDateString() === d.toDateString();
+      }).length;
+
+      result.push({
+        day: dayName,
+        done: completedOnDay,
+        total: Math.max(totalOnDay, completedOnDay),
+      });
+    }
+    return result;
+  }, [tasks]);
+
+  const velocityComparison = useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const completedToday = tasks.filter((t) => {
+      if (t.status !== 'completed' || !t.updatedAt) return false;
+      return new Date(t.updatedAt).toDateString() === today.toDateString();
+    }).length;
+
+    const completedYesterday = tasks.filter((t) => {
+      if (t.status !== 'completed' || !t.updatedAt) return false;
+      return new Date(t.updatedAt).toDateString() === yesterday.toDateString();
+    }).length;
+
+    const diff = completedToday - completedYesterday;
+    if (diff > 0) {
+      return {
+        badgeColor: 'emerald' as const,
+        diffText: `+${diff} today`,
+      };
+    } else if (diff < 0) {
+      return {
+        badgeColor: 'pink' as const,
+        diffText: `${diff} today`,
+      };
+    } else {
+      return {
+        badgeColor: 'blue' as const,
+        diffText: 'Steady',
+      };
+    }
+  }, [tasks]);
+
   // Get active and relevant notices for the user
   const activeNotices = useMemo(() => {
     const now = new Date();

@@ -12,7 +12,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/utils/cn';
 import { capitalize } from '@/utils/helpers';
-import type { DeletedItem, Task, Project } from '@/types';
+import type { DeletedItem, Task, Project, FileItem, Notification } from '@/types';
 
 export function TrashPage() {
   const { deletedItems, restoreDeletedItem, permanentlyDeleteItem, emptyTrash, projects } = useApp();
@@ -38,10 +38,20 @@ export function TrashPage() {
     const query = search.trim().toLowerCase();
     if (query) {
       result = result.filter((item) => {
-        const title = item.type === 'task' 
-          ? (item.item as Task).title 
-          : (item.item as Project).name;
-        const desc = item.item.description || '';
+        let title = '';
+        let desc = '';
+        if (item.type === 'task') {
+          title = (item.item as Task).title || '';
+          desc = (item.item as Task).description || '';
+        } else if (item.type === 'project') {
+          title = (item.item as Project).name || '';
+          desc = (item.item as Project).description || '';
+        } else if (item.type === 'file') {
+          title = (item.item as FileItem).name || '';
+        } else if (item.type === 'notification') {
+          title = (item.item as Notification).title || '';
+          desc = (item.item as Notification).message || '';
+        }
         return title.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
       });
     }
@@ -72,7 +82,11 @@ export function TrashPage() {
   const tableRows = filteredItems.map((item) => ({
     id: `${item.type}-${item.item.id}`,
     original: item,
-    title: item.type === 'task' ? (item.item as Task).title : (item.item as Project).name,
+    title: item.type === 'task' 
+      ? (item.item as Task).title 
+      : item.type === 'notification' 
+        ? (item.item as Notification).title 
+        : (item.item as Project | FileItem).name,
     type: item.type,
     deletedAt: item.deletedAt,
     context: item.type === 'task' ? (item.item as Task).projectId : '',
@@ -245,11 +259,17 @@ export function TrashPage() {
           setConfirmItem(null);
         }}
         onConfirm={handlePermanentDelete}
-        title={`Permanently Delete ${confirmItem?.type === 'task' ? 'Task' : 'Project'}`}
+        title={`Permanently Delete ${
+          confirmItem?.type === 'task' ? 'Task' :
+          confirmItem?.type === 'project' ? 'Project' :
+          confirmItem?.type === 'file' ? 'File' : 'Notification'
+        }`}
         message={`Are you sure you want to permanently delete "${
           confirmItem?.type === 'task' 
             ? (confirmItem.item as Task).title 
-            : (confirmItem?.item as Project)?.name
+            : confirmItem?.type === 'notification'
+              ? (confirmItem.item as Notification).title
+              : (confirmItem?.item as Project | FileItem)?.name
         }"? This action is irreversible.`}
         confirmLabel="Delete Permanently"
         variant="accent"

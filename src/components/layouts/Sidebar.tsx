@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   Zap,
   LogOut,
-  Trash2,
   Megaphone,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -38,7 +37,6 @@ const navItems = [
   { to: ROUTES.ACTIVITY, label: 'Activity', icon: Activity },
   { to: ROUTES.FILES, label: 'Files', icon: FileText },
   { to: ROUTES.NOTIFICATIONS, label: 'Notifications', icon: Bell },
-  { to: ROUTES.TRASH, label: 'Trash', icon: Trash2 },
   { to: ROUTES.ANALYTICS, label: 'Analytics', icon: BarChart3 },
   { to: ROUTES.TRASH, label: 'Trash Bin', icon: Trash2 },
 ];
