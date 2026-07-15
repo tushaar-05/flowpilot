@@ -263,6 +263,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [notifications, loading]);
 
+  useEffect(() => {
+    if (!loading && files.length > 0) {
+      setToStorage(STORAGE_KEYS.FILES, files);
+    }
+  }, [files, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage(STORAGE_KEYS.TRASH, deletedStack);
+    }
+  }, [deletedStack, loading]);
+
   const createProject = async (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const project: Project = {
@@ -421,7 +433,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteNotification = (id: string) => {
+    const notification = notifications.find((n) => n.id === id);
+    if (!notification) return;
+
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setDeletedStack((prev) => [{ type: 'notification', item: notification, deletedAt: Date.now() }, ...prev]);
+    addToast('info', 'Notification moved to Trash');
   };
 
   const updateProfile = (updated: UserProfile) => {
@@ -478,8 +495,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteFile = (id: string) => {
+    const file = files.find((f) => f.id === id);
+    if (!file) return;
+
     setFiles((prev) => prev.filter((f) => f.id !== id));
-    addToast('success', 'File deleted');
+    setDeletedStack((prev) => [{ type: 'file', item: file, deletedAt: Date.now() }, ...prev]);
+    addToast('success', 'File moved to Trash');
   };
 
   const checkProjectDeadlines = useCallback(() => {
@@ -616,6 +637,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         settings,
         sidebarOpen,
         setSidebarOpen,
+        deletedStack,
+        restoreDeletedItem,
+        permanentlyDeleteItem,
+        emptyTrash,
         createProject,
         updateProject,
         deleteProject,

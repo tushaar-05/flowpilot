@@ -33,6 +33,7 @@ import { TeamPage } from '@/pages/TeamPage';
 import { ActivityPage } from '@/pages/ActivityPage';
 import { FilesPage } from '@/pages/FilesPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
+import { TrashPage } from '@/pages/TrashPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { SettingsPage } from '@/pages/SettingsPage';

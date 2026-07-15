@@ -47,6 +47,8 @@ export const STORAGE_KEYS = {
   PROJECTS: 'flowpilot_projects',
   TASKS: 'flowpilot_tasks',
   NOTIFICATIONS: 'flowpilot_notifications',
+  FILES: 'flowpilot_files',
+  TRASH: 'flowpilot_trash',
   SETTINGS: 'flowpilot_settings',
   PROFILE: 'flowpilot_profile',
   THEME: 'flowpilot_theme',

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { subMonths, format, isSameMonth, parseISO, startOfMonth } from 'date-fns';
 import {
   BarChart,
   Bar,
@@ -21,12 +22,34 @@ export function AnalyticsPage() {
   const { projects, tasks, loading } = useApp();
 
   const completionTrend = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-    return months.map((month, i) => ({
-      month,
-      completed: Math.floor(tasks.filter((t) => t.status === 'completed').length * (i + 1) / 7),
-      created: Math.floor(tasks.length * (i + 1) / 7),
-    }));
+    const now = startOfMonth(new Date());
+    return Array.from({ length: 7 }, (_, i) => {
+      const targetMonth = subMonths(now, 6 - i);
+      const monthLabel = format(targetMonth, 'MMM');
+
+      const created = tasks.filter((t) => {
+        try {
+          return isSameMonth(parseISO(t.createdAt), targetMonth);
+        } catch {
+          return false;
+        }
+      }).length;
+
+      const completed = tasks.filter((t) => {
+        if (t.status !== 'completed') return false;
+        try {
+          return isSameMonth(parseISO(t.updatedAt), targetMonth);
+        } catch {
+          return false;
+        }
+      }).length;
+
+      return {
+        month: monthLabel,
+        completed,
+        created,
+      };
+    });
   }, [tasks]);
 
   const projectAnalytics = useMemo(() =>

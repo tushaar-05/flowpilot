@@ -24,16 +24,6 @@ import { formatRelative, getDueDateLabel, capitalize, getProjectDeadlineBadge } 
 import { ROUTES } from '@/constants';
 import { cn } from '@/utils/cn';
 
-const weekData = [
-  { day: 'Mon', done: 4, total: 8 },
-  { day: 'Tue', done: 6, total: 9 },
-  { day: 'Wed', done: 5, total: 7 },
-  { day: 'Thu', done: 8, total: 10 },
-  { day: 'Fri', done: 7, total: 9 },
-  { day: 'Sat', done: 3, total: 4 },
-  { day: 'Sun', done: 2, total: 3 },
-];
-
 export function DashboardPage() {
   const { projects, tasks, users, activity, checkProjectDeadlines, notices } = useApp();
   const { user } = useAuth();
@@ -230,7 +220,7 @@ export function DashboardPage() {
               <CardTitle>Weekly Velocity</CardTitle>
               <p className="text-sm text-ink/70 mt-1 font-medium">Tasks completed vs planned this week</p>
             </div>
-            <Badge color="emerald">+18% vs last week</Badge>
+            <Badge color={velocityComparison.badgeColor}>{velocityComparison.diffText}</Badge>
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={weekData}>
