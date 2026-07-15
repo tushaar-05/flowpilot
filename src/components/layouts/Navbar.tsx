@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApp } from '@/context/AppContext';
 import { ROUTES } from '@/constants';
+import { GlobalSearch } from './GlobalSearch';
 
 export function Navbar() {
-  const { sidebarOpen, setSidebarOpen, notifications, setSearchOpen } = useApp();
-  const { user } = useAuth();
+  const { sidebarOpen, setSidebarOpen, notifications, profile, settings, updateSettings } = useApp();
   const unread = notifications.filter((n) => !n.read).length;
-  const isMac = typeof window !== 'undefined' && window.navigator.userAgent.indexOf('Mac') !== -1;
 
   const isDark = settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
@@ -28,21 +27,8 @@ export function Navbar() {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div
-          onClick={() => setSearchOpen(true)}
-          className="hidden sm:block flex-1 max-w-md cursor-pointer select-none"
-        >
-          <div className="relative pointer-events-none">
-            <SearchBar
-              value=""
-              onChange={() => {}}
-              placeholder="Search anything..."
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded-lg border-2 border-ink bg-surface px-1.5 py-0.5 text-[10px] font-black text-muted shadow-brutal-sm">
-              {isMac ? '⌘K' : 'Ctrl+K'}
-            </div>
-          </div>
-        </div>
+        <div className="hidden sm:block flex-1 max-w-md">
+          <GlobalSearch />  </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
@@ -63,11 +49,7 @@ export function Navbar() {
             </span>
           )}
         </Link>
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="rounded-xl border-2 border-ink p-2.5 sm:hidden shadow-brutal-sm hover:bg-yellow/30 transition-colors"
-          aria-label="Open search command palette"
-        >
+        <button className="rounded-xl border-2 border-ink p-2.5 sm:hidden shadow-brutal-sm bg-surface">
           <Search className="h-5 w-5" />
         </button>
         <Link
