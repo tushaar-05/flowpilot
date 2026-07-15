@@ -12,7 +12,7 @@ const variants = {
   primary: 'bg-primary text-white border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active hover:bg-primary-dark',
   secondary: 'bg-secondary text-white border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active',
   yellow: 'bg-yellow text-ink border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active',
-  dark: 'bg-ink text-white dark:text-background border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active',
+  dark: 'bg-ink text-white border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active',
   outline: 'bg-surface text-ink border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active hover:bg-background',
   ghost: 'text-muted border-transparent hover:bg-yellow/20 hover:text-ink',
   danger: 'bg-danger text-white border-ink shadow-brutal-sm shadow-brutal-hover shadow-brutal-active',

@@ -31,7 +31,7 @@ export default function TermsPage() {
           <div className="absolute right-24 bottom-4 h-16 w-16 rounded-2xl border-2 border-ink bg-primary/20 rotate-12" />
           
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-ink border-2 border-ink px-3 py-1 bg-surface rounded-full mb-4">
+            <span className="inline-block text-xs font-bold uppercase tracking-widest text-ink border-2 border-ink px-3 py-1 bg-white rounded-full mb-4">
               Legal & Terms
             </span>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-ink leading-none">
