@@ -5,6 +5,8 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { cn } from '@/utils/cn';
 import type { AppSettings } from '@/types';
 import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
@@ -21,9 +23,23 @@ const settingsTabs = [
 export function SettingsPage() {
   const { settings, updateSettings } = useApp();
   const { theme, setTheme } = useTheme();
+  const { user, updateSecurityQuestions } = useAuth();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('general');
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+
+  const [placeOfBirth, setPlaceOfBirth] = useState(user?.securityQuestions?.placeOfBirth ?? '');
+  const [petName, setPetName] = useState(user?.securityQuestions?.petName ?? '');
+  const [favPlace, setFavPlace] = useState(user?.securityQuestions?.favPlace ?? '');
+
+  useEffect(() => {
+    if (user?.securityQuestions) {
+      setPlaceOfBirth(user.securityQuestions.placeOfBirth || '');
+      setPetName(user.securityQuestions.petName || '');
+      setFavPlace(user.securityQuestions.favPlace || '');
+    }
+  }, [user]);
 
   const handleChange = (key: keyof AppSettings, value: string | number | boolean) => {
     setLocalSettings((prev) => ({ ...prev, [key]: value }));

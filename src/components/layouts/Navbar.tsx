@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Menu, Search, Plus, Bell, Sun, Moon } from 'lucide-react';
+import { Menu, Search, Plus, Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -8,15 +8,8 @@ import { ROUTES } from '@/constants';
 import { GlobalSearch } from './GlobalSearch';
 
 export function Navbar() {
-  const { sidebarOpen, setSidebarOpen, notifications, profile, settings, updateSettings } = useApp();
+  const { sidebarOpen, setSidebarOpen, notifications, profile } = useApp();
   const unread = notifications.filter((n) => !n.read).length;
-
-  const isDark = settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  const toggleTheme = () => {
-    const newTheme = isDark ? 'light' : 'dark';
-    updateSettings({ theme: newTheme });
-  };
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b-2 border-ink bg-background/95 backdrop-blur-md px-4 sm:px-6">
