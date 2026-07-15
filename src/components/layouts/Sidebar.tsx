@@ -118,8 +118,8 @@ export function Sidebar() {
           {sidebarOpen && <span>Settings</span>}
         </NavLink>
         <button
-          onClick={() => setShowLogoutConfirm(true)}
-          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-muted hover:text-danger hover:bg-red-50 border-2 border-transparent transition-all"
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-muted hover:text-danger hover:bg-danger/10 border-2 border-transparent transition-all"
         >
           <LogOut className="h-5 w-5 shrink-0" />
           {sidebarOpen && <span>Log out</span>}

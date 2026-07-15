@@ -115,13 +115,13 @@ export function DashboardPage() {
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-ink/60 mb-2">
+            <p className="text-sm font-bold uppercase tracking-widest text-muted dark:text-ink/80 mb-2">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-ink leading-tight">
               {greeting}, {user?.name?.split(' ')[0] ?? 'there'} 👋
             </h1>
-            <p className="mt-3 text-lg text-ink/70 max-w-xl">
+            <p className="mt-3 text-lg text-muted dark:text-ink/90 max-w-xl">
               You have <strong className="text-ink">{openTasks} open tasks</strong> across{' '}
               <strong className="text-ink">{activeProjects.length} active projects</strong>. Let&apos;s make today count.
             </p>

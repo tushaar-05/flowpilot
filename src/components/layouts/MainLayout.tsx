@@ -5,6 +5,7 @@ import { Navbar } from './Navbar';
 import { useApp } from '@/context/AppContext';
 import { cn } from '@/utils/cn';
 import { Spinner } from '@/components/ui/Spinner';
+import { CommandPalette } from '@/components/ui/CommandPalette';
 
 export function MainLayout() {
   const { loading, sidebarOpen } = useApp();
@@ -45,6 +46,7 @@ export function MainLayout() {
           </AnimatePresence>
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }

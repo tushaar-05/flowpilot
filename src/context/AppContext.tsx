@@ -70,7 +70,8 @@ interface AppContextValue {
   uploadFile: (file: Omit<FileItem, 'id' | 'uploadedAt'>) => void;
   deleteFile: (id: string) => void;
   refreshData: () => Promise<void>;
-  checkProjectDeadlines: () => void;
+  searchOpen: boolean;
+  setSearchOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -103,8 +104,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(() =>
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
-  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [deletedStack, setDeletedStack] = useState<DeletedItem[]>([]);
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
   const loadData = useCallback(async () => {
@@ -640,7 +642,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadFile,
         deleteFile,
         refreshData: loadData,
-        checkProjectDeadlines,
+        searchOpen,
+        setSearchOpen,
       }}
     >
       {children}

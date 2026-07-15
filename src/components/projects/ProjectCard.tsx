@@ -88,7 +88,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
             <Avatar key={member.id} src={member.avatar} name={member.name} size="sm" />
           ))}
           {members.length > 3 && (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-muted border-2 border-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-ink border-2 border-surface">
               +{members.length - 3}
             </div>
           )}
