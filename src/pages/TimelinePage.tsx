@@ -21,7 +21,7 @@ const LEFT_COL = 200;
 // Opaque equivalent of bg-yellow/20 (#facc15 at 20% over #fffdf7).
 // Using a precomputed solid color so the sticky PROJECT cell fully covers
 // whatever scrolls behind it.
-const PROJECT_COL_BG = '#fef9e3';
+const PROJECT_COL_BG = 'var(--color-project-col-bg)';
 const TIMELINE_MONTHS = 3;
 const MIN_LABEL_WIDTH = 48;
 const LABEL_PADDING = 2;

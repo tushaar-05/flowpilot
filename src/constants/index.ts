@@ -22,7 +22,26 @@ export const ROUTES = {
   PROFILE: '/profile',
   SETTINGS: '/settings',
   TRASH: '/trash',
+  NOTICES: '/notices',
 } as const;
+//Static routes for navigation and routing in the application. 
+export const SEARCHABLE_PAGES = [
+  { label: 'Dashboard', route: ROUTES.DASHBOARD, keywords: 'home overview summary' },
+  { label: 'Projects', route: ROUTES.PROJECTS, keywords: 'project list workspace' },
+  { label: 'Tasks', route: ROUTES.TASKS, keywords: 'todo tasklist' },
+  { label: 'Kanban Board', route: ROUTES.KANBAN, keywords: 'board columns drag drop' },
+  { label: 'Calendar', route: ROUTES.CALENDAR, keywords: 'deadlines schedule dates' },
+  { label: 'Timeline', route: ROUTES.TIMELINE, keywords: 'gantt schedule roadmap' },
+  { label: 'Team', route: ROUTES.TEAM, keywords: 'members people roster' },
+  { label: 'Activity', route: ROUTES.ACTIVITY, keywords: 'feed history log' },
+  { label: 'Files', route: ROUTES.FILES, keywords: 'documents uploads attachments' },
+  { label: 'Notifications', route: ROUTES.NOTIFICATIONS, keywords: 'alerts inbox' },
+  { label: 'Analytics', route: ROUTES.ANALYTICS, keywords: 'charts stats metrics reports' },
+  { label: 'Profile', route: ROUTES.PROFILE, keywords: 'account personal info' },
+  { label: 'Settings', route: ROUTES.SETTINGS, keywords: 'preferences password security notifications appearance general' },
+  { label: 'Trash Bin', route: ROUTES.TRASH, keywords: 'trash bin deleted restore' },
+  { label: 'Notice Board', route: ROUTES.NOTICES, keywords: 'notices announcements board company team project' },
+] as const;
 
 export const STORAGE_KEYS = {
   PROJECTS: 'flowpilot_projects',
@@ -35,6 +54,8 @@ export const STORAGE_KEYS = {
   THEME: 'flowpilot_theme',
   USERS: 'flowpilot_users',
   SESSION: 'flowpilot_session',
+  DELETED_ITEMS: 'flowpilot_deleted_items',
+  NOTICES: 'flowpilot_notices',
 } as const;
 
 export const API_DELAYS = {
@@ -88,6 +109,7 @@ export const NOTIFICATION_CATEGORIES = [
 ];
 
 export const DEFAULT_SETTINGS = {
+  theme: 'light' as const,
   language: 'en',
   timezone: 'America/New_York',
   dateFormat: 'MMM d, yyyy',

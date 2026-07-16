@@ -6,7 +6,7 @@ import { ROUTES } from '@/constants';
 
 function HeroIllustration() {
   return (
-    <div className="relative w-full max-w-lg mx-auto aspect-square">
+    <div className="relative w-[500px] sm:w-[600px] lg:w-[700px] mx-auto aspect-square overflow-x-visible">
       <motion.div
         initial={{ opacity: 0, rotate: -8 }}
         animate={{ opacity: 1, rotate: -6 }}
@@ -70,7 +70,7 @@ export function HeroSection() {
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-ink leading-[1.05] tracking-tight">
             Manage Projects.<br />
-            <span className="text-primary">Collaborate Better.</span>
+            <span className="text-primary">Colaborate Better.</span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-muted leading-relaxed max-w-lg">
@@ -78,15 +78,15 @@ export function HeroSection() {
             without the bloat of enterprise tools or the chaos of spreadsheets.
           </p>
 
-          <div className="mt-10 flex flex-col-reverse sm:flex-row gap-4">
+          <div className="mt-10 flex flex-col-reverse gap-4 max-w-xs mx-auto lg:mx-0">
             <Link to={ROUTES.REGISTER}>
-              <Button size="lg" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full">
                 Get Started <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
             <Link to={ROUTES.DASHBOARD}>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                <Play className="h-5 w-5" /> View Demo
+              <Button variant="primary" size="lg" className="w-full">
+                <Play className="h-5 w-5" /> sign in
               </Button>
             </Link>
           </div>

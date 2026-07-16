@@ -1,17 +1,15 @@
 import { Link } from 'react-router-dom';
 import { Menu, Search, Plus, Bell, Sun, Moon } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApp } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { ROUTES } from '@/constants';
-import { useState } from 'react';
+import { GlobalSearch } from './GlobalSearch';
 
 export function Navbar() {
   const { sidebarOpen, setSidebarOpen, notifications, profile } = useApp();
-  const { theme, toggleTheme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState('');
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
@@ -24,12 +22,7 @@ export function Navbar() {
           <Menu className="h-5 w-5" />
         </button>
         <div className="hidden sm:block flex-1 max-w-md">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search anything..."
-          />
-        </div>
+          <GlobalSearch />  </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
@@ -38,14 +31,7 @@ export function Navbar() {
             <Plus className="h-4 w-4" /> New Task
           </Button>
         </Link>
-        <button
-          onClick={toggleTheme}
-          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-          aria-label="Toggle Theme"
-          className="rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm bg-surface"
-        >
-          {theme === 'light' ? <Moon className="h-5 w-5 text-ink" /> : <Sun className="h-5 w-5 text-yellow" />}
-        </button>
+        <ThemeToggle />
         <Link
           to={ROUTES.NOTIFICATIONS}
           className="relative rounded-xl border-2 border-ink p-2.5 hover:bg-yellow/30 transition-colors shadow-brutal-sm bg-surface"
@@ -65,7 +51,7 @@ export function Navbar() {
           className="flex items-center gap-2.5 rounded-2xl border-2 border-ink bg-surface pl-1.5 pr-3 py-1.5 hover:shadow-brutal-sm transition-all"
         >
           <Avatar src={profile?.avatar} name={profile?.name ?? 'User'} size="sm" />
-          <span className="hidden lg:block text-sm font-extrabold max-w-[120px] truncate">{profile?.name}</span>
+          <span className="hidden lg:block text-sm font-extrabold max-w-[120px] truncate text-ink">{profile?.name}</span>
         </Link>
       </div>
     </header>

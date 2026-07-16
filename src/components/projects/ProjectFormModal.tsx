@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,6 +35,7 @@ export function ProjectFormModal({ open, onClose, onSubmit, project, loading }: 
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isValid },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -57,6 +59,30 @@ export function ProjectFormModal({ open, onClose, onSubmit, project, loading }: 
           color: '#3B82F6',
         },
   });
+
+  useEffect(() => {
+    if (project) {
+      reset({
+        name: project.name,
+        description: project.description,
+        status: project.status,
+        priority: project.priority,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        color: project.color,
+      });
+    } else {
+      reset({
+        name: '',
+        description: '',
+        status: 'planning',
+        priority: 'medium',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: '',
+        color: '#3B82F6',
+      });
+    }
+  }, [project, reset]);
 
   const selectedColor = watch('color');
   const nameValue = watch('name');

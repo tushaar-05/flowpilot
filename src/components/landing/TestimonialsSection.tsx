@@ -40,10 +40,10 @@ export function TestimonialsSection() {
               transition={{ delay: i * 0.1 }}
             >
               <Card
-                color={i === 1 ? 'yellow' : 'white'}
-                className={`h-full flex flex-col ${i === 1 ? 'border-transparent shadow-none' : ''}`}
+                color={i === 0 ? 'white' : i === 1 ? 'yellow' : 'emerald'}
+                className="h-full flex flex-col"
               >
-                <p className="text-base text-ink leading-relaxed flex-1 font-medium">
+                <p className="text-base text-ink leading-relaxed flex-1 font-medium ">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 mt-6 pt-6 border-t-2 border-ink/10">

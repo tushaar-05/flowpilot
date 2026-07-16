@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/constants';
 import { getFromStorage, setToStorage } from '@/utils/storage';
 
@@ -14,11 +14,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return getFromStorage<Theme>(STORAGE_KEYS.THEME, 'light');
+    const saved = getFromStorage<Theme | null>(STORAGE_KEYS.THEME, null);
+    if (saved === 'light' || saved === 'dark') return saved;
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
   });
 
   useEffect(() => {
-    const root = document.documentElement;
+    const root = window.document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
@@ -27,13 +32,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setToStorage(STORAGE_KEYS.THEME, theme);
   }, [theme]);
 
-  const toggleTheme = useCallback(() => {
+  const toggleTheme = () => {
     setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
-  }, []);
+  };
 
-  const setTheme = useCallback((newTheme: Theme) => {
+  const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-  }, []);
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

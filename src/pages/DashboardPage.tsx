@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import { startOfWeek, addDays, subDays, format, isSameDay, parseISO } from 'date-fns';
+import { useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -10,6 +9,8 @@ import {
   Clock,
   Flame,
   PartyPopper,
+  Megaphone,
+  Pin,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardTitle } from '@/components/ui/Card';
@@ -19,97 +20,17 @@ import { Button } from '@/components/ui/Button';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { formatRelative, getDueDateLabel, capitalize } from '@/utils/helpers';
+import { formatRelative, getDueDateLabel, capitalize, getProjectDeadlineBadge } from '@/utils/helpers';
 import { ROUTES } from '@/constants';
+import { cn } from '@/utils/cn';
 
 export function DashboardPage() {
-  const { projects, tasks, users, activity } = useApp();
+  const { projects, tasks, users, activity, checkProjectDeadlines, notices } = useApp();
   const { user } = useAuth();
 
-  const { weekData, velocityComparison } = useMemo(() => {
-    const now = new Date();
-    const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
-    const lastWeekStart = subDays(currentWeekStart, 7);
-
-    let thisWeekDone = 0;
-    let lastWeekDone = 0;
-
-    tasks.forEach((t) => {
-      if (t.status === 'completed' && t.updatedAt) {
-        try {
-          const updatedDate = parseISO(t.updatedAt);
-          for (let i = 0; i < 7; i++) {
-            if (isSameDay(updatedDate, addDays(lastWeekStart, i))) {
-              lastWeekDone++;
-              break;
-            }
-          }
-        } catch {
-          // ignore
-        }
-      }
-    });
-
-    const data = Array.from({ length: 7 }, (_, i) => {
-      const targetDay = addDays(currentWeekStart, i);
-      const dayLabel = format(targetDay, 'EEE');
-      const dateLabel = format(targetDay, 'MMM d, yyyy');
-
-      const done = tasks.filter((t) => {
-        if (t.status !== 'completed' || !t.updatedAt) return false;
-        try {
-          return isSameDay(parseISO(t.updatedAt), targetDay);
-        } catch {
-          return false;
-        }
-      }).length;
-
-      const dueOrCreated = tasks.filter((t) => {
-        try {
-          return (
-            (t.dueDate && isSameDay(parseISO(t.dueDate), targetDay)) ||
-            (t.createdAt && isSameDay(parseISO(t.createdAt), targetDay))
-          );
-        } catch {
-          return false;
-        }
-      }).length;
-
-      thisWeekDone += done;
-      const total = Math.max(done, dueOrCreated + done);
-
-      return {
-        day: dayLabel,
-        date: dateLabel,
-        done,
-        total,
-      };
-    });
-
-    let diffText = '0% vs last week';
-    let badgeColor: 'emerald' | 'orange' | 'blue' = 'blue';
-
-    if (lastWeekDone === 0) {
-      if (thisWeekDone > 0) {
-        diffText = `+${thisWeekDone} done this week`;
-        badgeColor = 'emerald';
-      }
-    } else {
-      const pct = Math.round(((thisWeekDone - lastWeekDone) / lastWeekDone) * 100);
-      if (pct > 0) {
-        diffText = `+${pct}% vs last week`;
-        badgeColor = 'emerald';
-      } else if (pct < 0) {
-        diffText = `${pct}% vs last week`;
-        badgeColor = 'orange';
-      } else {
-        diffText = '0% vs last week';
-        badgeColor = 'blue';
-      }
-    }
-
-    return { weekData: data, velocityComparison: { diffText, badgeColor } };
-  }, [tasks]);
+  useEffect(() => {
+    checkProjectDeadlines();
+  }, [checkProjectDeadlines]);
 
   const openTasks = tasks.filter((t) => t.status !== 'completed').length;
   const completedTasks = tasks.filter((t) => t.status === 'completed').length;
@@ -129,14 +50,111 @@ export function DashboardPage() {
   );
 
   const urgentDeadlines = useMemo(() =>
-    [...tasks]
-      .filter((t) => t.status !== 'completed')
-      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-      .slice(0, 4),
-    [tasks]
-  );
+  [...tasks]
+    .filter((t) =>
+      t.status !== 'completed' &&
+      getDueDateLabel(t.dueDate).label !== 'Overdue'
+    )
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 4),
+  [tasks]
+);
 
   const topProject = [...activeProjects].sort((a, b) => b.progress - a.progress)[0];
+
+  const weekData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const result = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dayName = days[d.getDay()];
+      
+      const completedOnDay = tasks.filter((t) => {
+        if (t.status !== 'completed' || !t.updatedAt) return false;
+        const taskDate = new Date(t.updatedAt);
+        return taskDate.toDateString() === d.toDateString();
+      }).length;
+
+      const totalOnDay = tasks.filter((t) => {
+        if (!t.dueDate) return false;
+        const taskDate = new Date(t.dueDate);
+        return taskDate.toDateString() === d.toDateString();
+      }).length;
+
+      result.push({
+        day: dayName,
+        done: completedOnDay,
+        total: Math.max(totalOnDay, completedOnDay),
+      });
+    }
+    return result;
+  }, [tasks]);
+
+  const velocityComparison = useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const completedToday = tasks.filter((t) => {
+      if (t.status !== 'completed' || !t.updatedAt) return false;
+      return new Date(t.updatedAt).toDateString() === today.toDateString();
+    }).length;
+
+    const completedYesterday = tasks.filter((t) => {
+      if (t.status !== 'completed' || !t.updatedAt) return false;
+      return new Date(t.updatedAt).toDateString() === yesterday.toDateString();
+    }).length;
+
+    const diff = completedToday - completedYesterday;
+    if (diff > 0) {
+      return {
+        badgeColor: 'emerald' as const,
+        diffText: `+${diff} today`,
+      };
+    } else if (diff < 0) {
+      return {
+        badgeColor: 'pink' as const,
+        diffText: `${diff} today`,
+      };
+    } else {
+      return {
+        badgeColor: 'blue' as const,
+        diffText: 'Steady',
+      };
+    }
+  }, [tasks]);
+
+  // Get active and relevant notices for the user
+  const activeNotices = useMemo(() => {
+    const now = new Date();
+    return notices
+      .filter((n) => {
+        // Exclude expired
+        if (n.expiresAt && new Date(n.expiresAt) < now) return false;
+        
+        // Filter relevance
+        if (n.audience === 'everyone') return true;
+        
+        const currentUserProfile = users.find((u) => u.email.toLowerCase() === user?.email.toLowerCase());
+        if (!currentUserProfile) return false;
+        
+        if (n.audience === 'team') {
+          return n.targetId?.toLowerCase() === currentUserProfile.department?.toLowerCase();
+        }
+        if (n.audience === 'project') {
+          return currentUserProfile.projectIds.includes(n.targetId || '');
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      })
+      .slice(0, 2);
+  }, [notices, user, users]);
 
   return (
     <div className="space-y-10">
@@ -144,20 +162,20 @@ export function DashboardPage() {
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl border-2 border-ink bg-yellow/25 p-8 sm:p-10 shadow-brutal-lg"
+        className="relative overflow-hidden rounded-3xl border-2 border-ink bg-yellow/25 dark:bg-surface p-8 sm:p-10 shadow-brutal-lg"
       >
         <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full border-2 border-ink bg-pink/30" />
         <div className="absolute right-24 bottom-4 h-16 w-16 rounded-2xl border-2 border-ink bg-primary/30 rotate-12" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-muted mb-2">
+            <p className="text-sm font-bold uppercase tracking-widest text-ink/60 mb-2">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-ink leading-tight">
               {greeting}, {user?.name?.split(' ')[0] ?? 'there'} 👋
             </h1>
-            <p className="mt-3 text-lg text-muted max-w-xl">
+            <p className="mt-3 text-lg text-ink/70 max-w-xl">
               You have <strong className="text-ink">{openTasks} open tasks</strong> across{' '}
               <strong className="text-ink">{activeProjects.length} active projects</strong>. Let&apos;s make today count.
             </p>
@@ -177,6 +195,59 @@ export function DashboardPage() {
         </div>
       </motion.section>
 
+      {/* Notices Banner */}
+      {activeNotices.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-extrabold uppercase tracking-wider text-ink flex items-center gap-2">
+              <Megaphone className="h-4.5 w-4.5 text-accent animate-pulse" />
+              Latest Announcements
+            </h2>
+            <Link to={ROUTES.NOTICES} className="text-xs font-extrabold text-primary hover:underline">
+              View Notice Board →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeNotices.map((notice) => (
+              <div
+                key={notice.id}
+                className={cn(
+                  "p-4 rounded-2xl border-2 border-ink bg-surface shadow-brutal-sm hover:shadow-brutal transition-all relative flex flex-col justify-between",
+                  notice.pinned && "bg-yellow/5 border-yellow-500 shadow-brutal-yellow"
+                )}
+              >
+                {notice.pinned && (
+                  <Pin className="absolute right-3 top-3 h-4.5 w-4.5 text-yellow-500 fill-current rotate-45" />
+                )}
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase border-2 border-ink px-1.5 py-0.5 rounded-full",
+                      notice.audience === 'everyone' ? 'bg-blue-100 text-blue-800' :
+                      notice.audience === 'team' ? 'bg-emerald-100 text-emerald-800' :
+                      'bg-purple-100 text-purple-800'
+                    )}>
+                      {notice.audience === 'everyone' ? 'Everyone' :
+                       notice.audience === 'team' ? `Team: ${notice.targetId}` :
+                       'Project'}
+                    </span>
+                    <span className="text-[10px] font-medium text-muted">
+                      {formatRelative(notice.createdAt)}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-ink text-sm truncate pr-6">{notice.title}</h3>
+                  <p className="text-xs text-ink/70 mt-1 line-clamp-2">{notice.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      )}
+
       {/* Stat bento grid */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {[
@@ -195,7 +266,7 @@ export function DashboardPage() {
               <div className={`inline-flex rounded-xl border-2 border-ink p-2.5 ${stat.bg} shadow-brutal-sm mb-4`}>
                 <stat.icon className={`h-5 w-5 ${stat.accent}`} />
               </div>
-              <p className="text-sm font-bold text-muted uppercase tracking-wide">{stat.label}</p>
+              <p className="text-sm font-bold text-ink/60 uppercase tracking-wide">{stat.label}</p>
               <p className="text-3xl sm:text-4xl font-extrabold text-ink mt-1">
                 <AnimatedCounter value={stat.value} suffix={stat.suffix ?? ''} />
               </p>
@@ -211,7 +282,7 @@ export function DashboardPage() {
           <div className="flex items-start justify-between mb-6">
             <div>
               <CardTitle>Weekly Velocity</CardTitle>
-              <p className="text-sm text-muted mt-1 font-medium">Tasks completed vs planned this week</p>
+              <p className="text-sm text-ink/70 mt-1 font-medium">Tasks completed vs planned this week</p>
             </div>
             <Badge color={velocityComparison.badgeColor}>{velocityComparison.diffText}</Badge>
           </div>
@@ -223,15 +294,9 @@ export function DashboardPage() {
                   <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" tick={{ fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ borderRadius: 16, border: '2px solid #111827', fontWeight: 700 }}
-                labelFormatter={(label, payload) => {
-                  const item = payload?.[0]?.payload;
-                  return item?.date ? `${label} (${item.date})` : label;
-                }}
-              />
+              <XAxis dataKey="day" tick={{ fontSize: 12, fontWeight: 700, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 16, border: '2px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-ink)', fontWeight: 700 }} />
               <Area type="monotone" dataKey="done" stroke="#3B82F6" strokeWidth={3} fill="url(#colorDone)" />
               <Area type="monotone" dataKey="total" stroke="#F97316" strokeWidth={2} strokeDasharray="6 4" fill="none" />
             </AreaChart>
@@ -246,14 +311,28 @@ export function DashboardPage() {
           </div>
           {topProject ? (
             <>
-              <h3 className="text-2xl font-extrabold text-ink">{topProject.name}</h3>
-              <p className="text-sm text-muted mt-2 line-clamp-2">{topProject.description}</p>
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h3 className="text-2xl font-extrabold text-ink leading-tight">{topProject.name}</h3>
+                {(() => {
+                  const deadlineBadge = getProjectDeadlineBadge(topProject.endDate, topProject.status);
+                  if (deadlineBadge) {
+                    return (
+                      <Badge color={deadlineBadge.color} className="shrink-0 whitespace-nowrap mt-1">
+                        <span className="mr-1">{deadlineBadge.icon}</span>
+                        {deadlineBadge.label}
+                      </Badge>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              <p className="text-sm text-ink/70 mt-2 line-clamp-2">{topProject.description}</p>
               <div className="mt-6">
                 <div className="flex justify-between text-sm font-bold mb-2">
                   <span>Progress</span>
                   <span className="text-primary">{topProject.progress}%</span>
                 </div>
-                <div className="h-4 rounded-full border-2 border-ink bg-surface overflow-hidden">
+                <div className="h-4 rounded-full border-2 border-ink bg-background overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${topProject.progress}%` }}

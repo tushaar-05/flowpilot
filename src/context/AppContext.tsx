@@ -17,16 +17,18 @@ import type {
   UserProfile,
   AppSettings,
   DeletedItem,
+  Notice,
 } from '@/types';
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from '@/constants';
 import { getFromStorage, setToStorage, removeFromStorage } from '@/utils/storage';
-import { generateId } from '@/utils/helpers';
+import { generateId, formatDate } from '@/utils/helpers';
 import { fetchProjects, createProjectApi, updateProjectApi, deleteProjectApi } from '@/services/projectService';
 import { fetchTasks, createTaskApi, updateTaskApi, deleteTaskApi } from '@/services/taskService';
 import { fetchUsers, fetchCurrentUser } from '@/services/userService';
 import { fetchNotifications } from '@/services/notificationService';
 import { fetchFiles } from '@/services/fileService';
 import { fetchActivity } from '@/services/activityService';
+import { fetchNotices, createNoticeApi, updateNoticeApi, deleteNoticeApi } from '@/services/noticeService';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
 
@@ -37,6 +39,7 @@ interface AppContextValue {
   users: User[];
   currentUser: User | null;
   notifications: Notification[];
+  notices: Notice[];
   files: FileItem[];
   activity: ActivityItem[];
   profile: UserProfile;
@@ -49,11 +52,14 @@ interface AppContextValue {
   createTask: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  createNotice: (data: Omit<Notice, 'id' | 'createdAt' | 'authorId' | 'authorName' | 'authorAvatar'>) => Promise<void>;
+  updateNotice: (notice: Notice) => Promise<void>;
+  deleteNotice: (id: string) => Promise<void>;
   undoDelete: () => void;
-  deletedStack: DeletedItem[];
-  restoreDeletedItem: (item: DeletedItem) => void;
-  permanentlyDeleteItem: (item: DeletedItem) => void;
-  emptyTrash: () => void;
+  deletedItems: DeletedItem[];
+  restoreDeletedItem: (item: DeletedItem) => Promise<void>;
+  permanentlyDeleteItem: (item: DeletedItem) => Promise<void>;
+  emptyTrash: () => Promise<void>;
   updateTaskStatus: (id: string, status: Task['status']) => void;
   reorderTasks: (tasks: Task[]) => void;
   markNotificationRead: (id: string) => void;
@@ -64,6 +70,7 @@ interface AppContextValue {
   uploadFile: (file: Omit<FileItem, 'id' | 'uploadedAt'>) => void;
   deleteFile: (id: string) => void;
   refreshData: () => Promise<void>;
+  checkProjectDeadlines: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -89,22 +96,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [settings, setSettings] = useState<AppSettings>(() =>
     getFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [deletedStack, setDeletedStack] = useState<DeletedItem[]>(() =>
-    getFromStorage(STORAGE_KEYS.TRASH, [])
-  );
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
   const pendingUpdates = useRef<Map<string, number>>(new Map());
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [projectsData, tasksData, usersData, user, notifs, filesData, activityData] =
+      const [projectsData, tasksData, usersData, user, notifs, filesData, activityData, noticesMockData] =
         await Promise.all([
           fetchProjects(),
           fetchTasks(),
@@ -113,22 +119,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
           fetchNotifications(),
           fetchFiles(),
           fetchActivity(),
+          fetchNotices(),
         ]);
 
       const storedProjects = getFromStorage<Project[] | null>(STORAGE_KEYS.PROJECTS, null);
       const storedTasks = getFromStorage<Task[] | null>(STORAGE_KEYS.TASKS, null);
       const storedNotifs = getFromStorage<Notification[] | null>(STORAGE_KEYS.NOTIFICATIONS, null);
-      const storedFiles = getFromStorage<FileItem[] | null>(STORAGE_KEYS.FILES, null);
-      const storedTrash = getFromStorage<DeletedItem[] | null>(STORAGE_KEYS.TRASH, null);
+      const storedDeleted = getFromStorage<DeletedItem[] | null>(STORAGE_KEYS.DELETED_ITEMS, null);
+      const storedNotices = getFromStorage<Notice[] | null>(STORAGE_KEYS.NOTICES, null);
+      const storedUsers = getFromStorage<User[] | null>('flowpilot_app_users', null);
 
       setProjects(storedProjects ?? projectsData);
       setTasks(storedTasks ?? tasksData);
-      setUsers(usersData);
+      setUsers(storedUsers ?? usersData);
       setCurrentUser(user);
       setNotifications(storedNotifs ?? notifs);
-      setFiles(storedFiles ?? filesData);
-      setDeletedStack(storedTrash ?? []);
+      setNotices(storedNotices ?? noticesMockData);
+      setFiles(filesData);
       setActivity(activityData);
+      setDeletedItems(storedDeleted ?? []);
     } catch {
       addToast('error', 'Failed to load application data');
     } finally {
@@ -148,19 +157,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (found) {
         setCurrentUser(found);
       } else {
-        setCurrentUser({
+        const newUser: User = {
           id: authUser.email,
           name: authUser.name,
           email: authUser.email,
-          role: 'member',
+          role: 'admin',
           avatar: authUser.avatar,
-          department: 'General',
+          department: 'Engineering',
           phone: '',
-          bio: '',
+          bio: 'Registered user.',
           skills: [],
           joinedAt: authUser.createdAt || new Date().toISOString(),
-          projectIds: [],
+          projectIds: ['proj-1', 'proj-2'],
+        };
+        setUsers((prev) => {
+          if (prev.some((u) => u.email.toLowerCase() === authUser.email.toLowerCase())) {
+            return prev;
+          }
+          return [...prev, newUser];
         });
+        setCurrentUser(newUser);
       }
 
       // Load user-specific profile
@@ -184,24 +200,66 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [authUser, users, loading]);
 
   useEffect(() => {
-    if (!loading && projects.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.PROJECTS, projects);
     }
   }, [projects, loading]);
 
   useEffect(() => {
-    if (!loading && tasks.length > 0) {
+    if (!loading) {
       setToStorage(STORAGE_KEYS.TASKS, tasks);
     }
   }, [tasks, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage(STORAGE_KEYS.DELETED_ITEMS, deletedItems);
+    }
+  }, [deletedItems, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage(STORAGE_KEYS.NOTICES, notices);
+    }
+  }, [notices, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      setToStorage('flowpilot_app_users', users);
+    }
+  }, [users, loading]);
 
   useEffect(() => {
     setToStorage(STORAGE_KEYS.SETTINGS, settings);
   }, [settings]);
 
   useEffect(() => {
+    const root = window.document.documentElement;
+    const applyTheme = (theme: string) => {
+      root.classList.remove('light', 'dark');
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        root.classList.add(systemTheme);
+      } else {
+        root.classList.add(theme);
+      }
+    };
+
+    applyTheme(settings.theme || 'light');
+
+    if (settings.theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => {
+        applyTheme('system');
+      };
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [settings.theme]);
+
+  useEffect(() => {
     if (!loading) {
-      setToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications.filter((n) => n.read));
+      setToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
     }
   }, [notifications, loading]);
 
@@ -211,11 +269,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [files, loading]);
 
-  useEffect(() => {
-    if (!loading) {
-      setToStorage(STORAGE_KEYS.TRASH, deletedStack);
-    }
-  }, [deletedStack, loading]);
 
   const createProject = async (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
@@ -259,7 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!project) return;
 
     setProjects((prev) => prev.filter((p) => p.id !== id));
-    setDeletedStack((prev) => [{ type: 'project', item: project, deletedAt: Date.now() }, ...prev]);
+    setDeletedItems((prev) => [...prev, { type: 'project', item: project, deletedAt: Date.now() }]);
     addToast('success', 'Project deleted');
     try {
       await deleteProjectApi(id);
@@ -303,7 +356,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!task) return;
 
     setTasks((prev) => prev.filter((t) => t.id !== id));
-    setDeletedStack((prev) => [{ type: 'task', item: task, deletedAt: Date.now() }, ...prev]);
+    setDeletedItems((prev) => [...prev, { type: 'task', item: task, deletedAt: Date.now() }]);
     addToast('success', 'Task deleted');
 
     try {
@@ -313,39 +366,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const restoreDeletedItem = (deletedItem: DeletedItem) => {
-    setDeletedStack((prev) =>
-      prev.filter((d) => !(d.item.id === deletedItem.item.id && d.type === deletedItem.type && d.deletedAt === deletedItem.deletedAt))
-    );
+  const undoDelete = () => {
+    if (deletedItems.length === 0) return;
+    const toRestore = deletedItems[deletedItems.length - 1];
+    setDeletedItems((prev) => prev.slice(0, -1));
 
-    if (deletedItem.type === 'task') {
-      setTasks((prev) => [deletedItem.item as Task, ...prev]);
-    } else if (deletedItem.type === 'project') {
-      setProjects((prev) => [deletedItem.item as Project, ...prev]);
-    } else if (deletedItem.type === 'file') {
-      setFiles((prev) => [deletedItem.item as FileItem, ...prev]);
-    } else if (deletedItem.type === 'notification') {
-      setNotifications((prev) => [deletedItem.item as Notification, ...prev]);
+    if (toRestore.type === 'task') {
+      setTasks((prev) => [toRestore.item as Task, ...prev]);
+    } else {
+      setProjects((prev) => [toRestore.item as Project, ...prev]);
     }
     addToast('info', 'Item restored');
   };
 
-  const permanentlyDeleteItem = (deletedItem: DeletedItem) => {
-    setDeletedStack((prev) =>
-      prev.filter((d) => !(d.item.id === deletedItem.item.id && d.type === deletedItem.type && d.deletedAt === deletedItem.deletedAt))
-    );
-    addToast('success', 'Item permanently deleted');
+  const restoreDeletedItem = async (deletedItem: DeletedItem) => {
+    setDeletedItems((prev) => prev.filter((d) => d.item.id !== deletedItem.item.id));
+    if (deletedItem.type === 'task') {
+      const task = deletedItem.item as Task;
+      setTasks((prev) => [task, ...prev]);
+      addToast('success', `Task "${task.title}" restored`);
+    } else {
+      const project = deletedItem.item as Project;
+      setProjects((prev) => [project, ...prev]);
+      addToast('success', `Project "${project.name}" restored`);
+    }
   };
 
-  const emptyTrash = () => {
-    setDeletedStack([]);
-    addToast('success', 'Trash emptied');
+  const permanentlyDeleteItem = async (deletedItem: DeletedItem) => {
+    setDeletedItems((prev) => prev.filter((d) => d.item.id !== deletedItem.item.id));
+    addToast('success', `${deletedItem.type === 'task' ? 'Task' : 'Project'} permanently deleted`);
   };
 
-  const undoDelete = () => {
-    if (deletedStack.length === 0) return;
-    const toRestore = deletedStack[0];
-    restoreDeletedItem(toRestore);
+  const emptyTrash = async () => {
+    setDeletedItems([]);
+    addToast('success', 'Trash bin emptied');
   };
 
   const updateTaskStatus = (id: string, status: Task['status']) => {
@@ -378,7 +432,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!notification) return;
 
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-    setDeletedStack((prev) => [{ type: 'notification', item: notification, deletedAt: Date.now() }, ...prev]);
+    setDeletedItems((prev) => [{ type: 'notification', item: notification, deletedAt: Date.now() }, ...prev]);
     addToast('info', 'Notification moved to Trash');
   };
 
@@ -440,8 +494,126 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!file) return;
 
     setFiles((prev) => prev.filter((f) => f.id !== id));
-    setDeletedStack((prev) => [{ type: 'file', item: file, deletedAt: Date.now() }, ...prev]);
+    setDeletedItems((prev) => [{ type: 'file', item: file, deletedAt: Date.now() }, ...prev]);
     addToast('success', 'File moved to Trash');
+  };
+
+  const checkProjectDeadlines = useCallback(() => {
+    if (loading || projects.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const newNotifications: Notification[] = [];
+    let updated = false;
+
+    projects.forEach((project) => {
+      if (project.status === 'completed' || project.status === 'archived') {
+        return;
+      }
+
+      const endDate = new Date(project.endDate);
+      endDate.setHours(0, 0, 0, 0);
+
+      const diffTime = endDate.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      let reminderPeriod: 'soon' | 'tomorrow' | 'today' | 'overdue' | null = null;
+      let message = '';
+
+      const formattedDate = formatDate(project.endDate, 'MMMM d, yyyy');
+
+      if (diffDays < 0) {
+        reminderPeriod = 'overdue';
+        message = `${project.name} is overdue since ${formattedDate}. Please review any remaining tasks.`;
+      } else if (diffDays === 0) {
+        reminderPeriod = 'today';
+        message = `${project.name} is due today (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      } else if (diffDays === 1) {
+        reminderPeriod = 'tomorrow';
+        message = `${project.name} is due tomorrow (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      } else if (diffDays === 2 || diffDays === 3) {
+        reminderPeriod = 'soon';
+        message = `${project.name} is due in ${diffDays} days (${formattedDate}). Please review any remaining tasks before the deadline.`;
+      }
+
+      if (reminderPeriod) {
+        const alreadyExists = [...notifications, ...newNotifications].some((n) => {
+          if (n.category !== 'project' || n.link !== `/projects/${project.id}`) {
+            return false;
+          }
+          if (reminderPeriod === 'overdue') return n.message.includes('overdue');
+          if (reminderPeriod === 'today') return n.message.includes('due today');
+          if (reminderPeriod === 'tomorrow') return n.message.includes('due tomorrow') || n.message.includes('due in 1 day');
+          if (reminderPeriod === 'soon') return n.message.includes('due in 3 days') || n.message.includes('due in 2 days') || n.message.includes('due soon');
+          return false;
+        });
+
+        if (!alreadyExists) {
+          const newNotif: Notification = {
+            id: generateId(),
+            title: 'Project Deadline Reminder',
+            message: message,
+            category: 'project',
+            read: false,
+            createdAt: new Date().toISOString(),
+            link: `/projects/${project.id}`,
+          };
+          newNotifications.push(newNotif);
+          updated = true;
+        }
+      }
+    });
+
+    if (updated) {
+      setNotifications((prev) => {
+        const nextNotifs = [...newNotifications, ...prev];
+        setToStorage(STORAGE_KEYS.NOTIFICATIONS, nextNotifs);
+        return nextNotifs;
+      });
+    }
+  }, [loading, projects, notifications]);
+
+  const createNotice = async (data: Omit<Notice, 'id' | 'createdAt' | 'authorId' | 'authorName' | 'authorAvatar'>) => {
+    if (!currentUser) return;
+    const now = new Date().toISOString();
+    const notice: Notice = {
+      ...data,
+      id: generateId(),
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      createdAt: now,
+    };
+    setNotices((prev) => [notice, ...prev]);
+    addToast('success', `Notice "${notice.title}" created`);
+    try {
+      await createNoticeApi(notice);
+    } catch {
+      addToast('error', 'Failed to sync notice');
+    }
+  };
+
+  const updateNotice = async (notice: Notice) => {
+    setNotices((prev) =>
+      prev.map((n) => (n.id === notice.id ? notice : n))
+    );
+    addToast('success', 'Notice updated');
+    try {
+      await updateNoticeApi(notice);
+    } catch {
+      addToast('error', 'Failed to update notice');
+    }
+  };
+
+  const deleteNotice = async (id: string) => {
+    setNotices((prev) => prev.filter((n) => n.id !== id));
+    addToast('success', 'Notice deleted');
+    try {
+      await deleteNoticeApi(id);
+    } catch {
+      addToast('error', 'Failed to delete notice');
+    }
   };
 
   return (
@@ -453,23 +625,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
         users,
         currentUser,
         notifications,
+        notices,
         files,
         activity,
         profile,
         settings,
         sidebarOpen,
         setSidebarOpen,
-        deletedStack,
-        restoreDeletedItem,
-        permanentlyDeleteItem,
-        emptyTrash,
         createProject,
         updateProject,
         deleteProject,
         createTask,
         updateTask,
         deleteTask,
+        createNotice,
+        updateNotice,
+        deleteNotice,
         undoDelete,
+        deletedItems,
+        restoreDeletedItem,
+        permanentlyDeleteItem,
+        emptyTrash,
         updateTaskStatus,
         reorderTasks,
         markNotificationRead,
@@ -480,6 +656,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadFile,
         deleteFile,
         refreshData: loadData,
+        checkProjectDeadlines,
       }}
     >
       {children}

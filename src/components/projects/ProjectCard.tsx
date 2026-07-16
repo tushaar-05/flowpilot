@@ -4,7 +4,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import type { Project } from '@/types';
 import { Link } from 'react-router-dom';
 import { MoreHorizontal, Users } from 'lucide-react';
-import { getPriorityColor, capitalize } from '@/utils/helpers';
+import { getPriorityColor, capitalize, getProjectDeadlineBadge } from '@/utils/helpers';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { useApp } from '@/context/AppContext';
 
@@ -48,13 +48,25 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
         <p className="text-sm text-muted line-clamp-2 mb-4">{project.description}</p>
       </Link>
 
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Badge className={getPriorityColor(project.priority)}>
           {capitalize(project.priority)}
         </Badge>
         <Badge className="bg-slate-100 text-slate-600">
           {capitalize(project.status)}
         </Badge>
+        {(() => {
+          const deadlineBadge = getProjectDeadlineBadge(project.endDate, project.status);
+          if (deadlineBadge) {
+            return (
+              <Badge color={deadlineBadge.color}>
+                <span className="mr-1">{deadlineBadge.icon}</span>
+                {deadlineBadge.label}
+              </Badge>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       <div className="mb-4">
