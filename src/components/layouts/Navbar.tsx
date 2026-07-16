@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Menu, Search, Plus, Bell } from 'lucide-react';
+import { Menu, Search, Plus, Bell, Sun, Moon } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useApp } from '@/context/AppContext';
+import { useTheme } from '@/context/ThemeContext';
 import { ROUTES } from '@/constants';
 import { GlobalSearch } from './GlobalSearch';
 

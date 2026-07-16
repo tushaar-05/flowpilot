@@ -45,7 +45,7 @@ export function CollaborationSection() {
           initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="rounded-3xl border-2 border-ink bg-white p-8 shadow-brutal-lg"
+          className="rounded-3xl border-2 border-ink bg-surface p-8 shadow-brutal-lg"
         >
           <div className="flex space-x-12 mb-6">
             {avatars.map((src) => (

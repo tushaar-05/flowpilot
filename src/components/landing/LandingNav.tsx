@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
-import { Zap, Menu, X } from 'lucide-react';
+import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ROUTES } from '@/constants';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export function LandingNav() {
   const [open, setOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const links = [
     { href: '#features', label: 'Features' },

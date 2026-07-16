@@ -17,7 +17,7 @@ function HeroIllustration() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="absolute top-24 right-0 h-36 w-52 rounded-3xl border-2 border-ink bg-white shadow-brutal-lg p-4"
+        className="absolute top-24 right-0 h-36 w-52 rounded-3xl border-2 border-ink bg-surface shadow-brutal-lg p-4"
       >
         <div className="h-3 w-20 rounded-full bg-ink/10 mb-3" />
         <div className="space-y-2">
@@ -68,7 +68,7 @@ export function HeroSection() {
             Now in public beta — 2,400+ teams
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.05] tracking-tight">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-ink leading-[1.05] tracking-tight">
             Manage Projects.<br />
             <span className="text-primary">Colaborate Better.</span>
           </h1>

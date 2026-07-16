@@ -47,7 +47,7 @@ export function Dropdown({ trigger, items, align = 'left' }: DropdownProps) {
                 setOpen(false);
               }}
               className={cn(
-                'flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 transition-colors',
+                'flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ink/5 transition-colors',
                 item.danger && 'text-danger'
               )}
             >

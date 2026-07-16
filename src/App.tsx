@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { AppProvider } from '@/context/AppContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { PublicOnlyRoute } from '@/components/auth/PublicOnlyRoute';
 import { MainLayout } from '@/components/layouts/MainLayout';
