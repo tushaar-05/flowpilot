@@ -70,7 +70,7 @@ export function HeroSection() {
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-ink leading-[1.05] tracking-tight">
             Manage Projects.<br />
-            <span className="text-primary">Colaborate Better.</span>
+            <span className="text-primary">Collaborate Better.</span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-muted leading-relaxed max-w-lg">
